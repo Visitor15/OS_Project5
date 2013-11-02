@@ -57,6 +57,10 @@ struct process_t {
 	}
 };
 
+inline static bool isKernelThread(const process_t proc) {
+	return (proc._pid == '@');
+}
+
 /*
  *	CLASS				ProcessBuilder
  *

@@ -53,22 +53,31 @@ bool MemoryManager::swapIn(process_t process) {
 		std::cout << "Size: " << (process._limit - process._base) << std::endl;
 //		std::cout << "BASE: " << process._base << " LIMIT: " << process._limit
 //				<< std::endl;
-		for (int i = process._base; i < process._limit; ++i) {
+		for (unsigned long i = process._base; i < process._limit; ++i) {
 //			std::cout << process._pid;
 			_mem_array[i] = process._pid;
 		}
 
+		process._burst_time = (rand() % 5) + 1;
+
 		_running_queue.push_back(process);
+
+//		printMemMap();
 
 		return true;
 	} else {
-		for (int i = 0; i < _running_queue.size(); ++i) {
-			if (_running_queue.at(i)._can_swap_out) {
-				swapOut(_running_queue.at(i));
-				_ready_queue.push_back(_running_queue.at(i));
-				_running_queue.erase(_running_queue.begin() + i);
+		for (unsigned long i = 0; i < _running_queue.size(); i++) {
+			process_t& _proc = _running_queue[i];
+			if (_proc._can_swap_out) {
+				if (swapOut(_proc)) {
+					_proc._can_swap_out = false;
+					_proc._can_swap_in = true;
+					_ready_queue.push_back(_running_queue.at(i));
+					_running_queue.erase(_running_queue.begin() + i);
 
-				return false;
+					return true;
+				}
+
 			}
 		}
 
@@ -79,6 +88,10 @@ bool MemoryManager::swapIn(process_t process) {
 
 bool MemoryManager::swapOut(const process_t process) {
 
+	if (isKernelThread(process)) {
+		return false;
+	}
+
 	std::cout << "Swapping out " << process._pid << std::endl;
 	std::cout << "Freed: " << (process._limit - process._base) << std::endl;
 
@@ -86,17 +99,19 @@ bool MemoryManager::swapOut(const process_t process) {
 		_mem_array[i] = ' ';
 	}
 
+//	printMemMap();
+
 	return true;
 }
 
 std::pair<long, long> MemoryManager::canFitFirstFit(process_t process) {
 
-	long _size = process.size();
+	unsigned long _size = process.size();
 
-	for (int i = 0; i < MEMORY_SIZE; ++i) {
+	for (unsigned long i = 0; i < MEMORY_SIZE; ++i) {
 		if (_mem_array[i] == ' ') {
 //			std::cout << "MEM OBJ: " << _mem_array[i];
-			for (int p = i; p < MEMORY_SIZE; ++p) {
+			for (unsigned long p = i; p < MEMORY_SIZE; ++p) {
 				if (_mem_array[p] == ' ') {
 
 					if (p == (MEMORY_SIZE - 1)) {
@@ -105,9 +120,6 @@ std::pair<long, long> MemoryManager::canFitFirstFit(process_t process) {
 					}
 
 					if ((p - i) == _size) {
-						process._base = i;
-						process._limit = p;
-
 						return std::make_pair<long, long>(i, p);
 					}
 				}
@@ -145,23 +157,104 @@ struct process_t MemoryManager::pullNextFromReadyQueue() {
 
 void MemoryManager::executeCycle() {
 //	std::cout << "Running Queue size: " << _running_queue.size() << std::endl;
-	for (int i = 0; i < _running_queue.size(); ++i) {
+	for (unsigned long i = 0; i < _running_queue.size(); ++i) {
 
 		process_t& _proc = _running_queue[i];
 		_proc._burst_time = (_proc._burst_time - 1);
 		if (_proc._burst_time == 0) {
-//			std::cout << "Process: " << _proc._pid << " Burst time is 0"
-//					<< std::endl;
 			_proc._can_swap_out = true;
 		}
 	}
 
-	for (int i = 0; i < _ready_queue.size(); ++i) {
+	for (unsigned long i = 0; i < _ready_queue.size(); ++i) {
 		if (swapIn(_ready_queue.at(i))) {
 			_ready_queue.erase(_ready_queue.begin() + i);
 			break;
 		}
 	}
 
+}
+
+bool MemoryManager::hasProcRegistered(char _pid) {
+	bool _inRunQueue = false;
+	bool _inReadyQueue = false;
+
+	unsigned long i = 0;
+	for (i = 0; i < _running_queue.size(); i++) {
+		if (_pid == _running_queue.at(i)._pid) {
+			_inRunQueue = true;
+			break;
+		}
+	}
+
+	for (i = 0; i < _ready_queue.size(); i++) {
+		if (_pid == _ready_queue.at(i)._pid) {
+			_inReadyQueue = true;
+			break;
+		}
+	}
+
+	return (_inRunQueue || _inReadyQueue) ? true : false;
+}
+
+int i = 0;
+int _print_state = 0;
+void MemoryManager::printMemMap() {
+	i = 0;
+	for (; i < MEMORY_SIZE; i++) {
+
+		switch (_print_state) {
+		case 0: {
+			if ((i > 0) && (i % 10 == 0)) {
+				std::cout << i;
+			} else if ((i < 100) && (i % 8 != 0)) {
+				std::cout << " ";
+			} else if ((i < 1000) && (i % 7 != 0)) {
+				std::cout << " ";
+			} else if ((i < 10000) && (i % 6 != 0)) {
+				std::cout << " ";
+			}
+
+			if ((i > 0) && (i % 80 == 0)) {
+				_print_state += 1;
+				std::cout << std::endl;
+				i = (i - 80);
+			}
+
+			continue;
+		}
+		case 1: {
+
+			if (i % 5 == 0) {
+				if (i % 10 == 0) {
+					std::cout << "|";
+				} else {
+					std::cout << "+";
+				}
+			} else {
+				std::cout << "-";
+			}
+
+			if ((i > 0) && (i % 80 == 0)) {
+				_print_state += 1;
+				std::cout << std::endl;
+				i = (i - 80);
+			}
+
+			continue;
+		}
+		case 2: {
+
+			std::cout << _mem_array[i];
+
+			if ((i > 0) && (i % 80 == 0)) {
+				_print_state = 0;
+				std::cout << std::endl;
+			}
+
+			continue;
+		}
+		}
+	}
 }
 

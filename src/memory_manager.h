@@ -15,7 +15,7 @@
 
 static const unsigned long MEMORY_SIZE = 1040UL;
 
-static  int MEM_STRATEGY = 0;
+static int MEM_STRATEGY = 0;
 
 class MemoryManager {
 public:
@@ -32,6 +32,8 @@ public:
 	virtual std::pair<long, long> canFitFirstFit( process_t process);
 	virtual bool canFitBestFit( process_t process);
 	virtual bool canFitWorstFit( process_t process);
+	virtual bool hasProcRegistered(char _pid);
+	virtual void printMemMap();
 
 private:
 	char _mem_array[MEMORY_SIZE];
