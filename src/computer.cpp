@@ -7,8 +7,6 @@
 
 #include "computer.h"
 
-int cycle_num = 0;
-
 Computer::~Computer() {
 
 }
@@ -28,15 +26,20 @@ void Computer::beginExecution() {
 	loadJobs();
 	do {
 		cycle();
-		if (cycle_num % 5000 == 0) {
+		if (cycle_num % PRINT_INTERVAL == 0) {
 			_memManager.printMemMap();
 		}
 	} while (hasJobs());
 }
 
+void Computer::cycle() {
+	++cycle_num;
+	_memManager.executeCycle();
+}
+
 void Computer::loadJobs() {
 	srand(time(0));
-	cycle_num = 0;
+
 	ProcessBuilder _instance = ProcessBuilder::getInstance();
 	for (int i = 0; i < NUM_OF_PROCESSES; ++i) {
 		process_t _proc = _instance.generateProcess();
@@ -58,11 +61,6 @@ void Computer::loadJobs() {
 }
 
 bool Computer::hasJobs() {
-	return (cycle_num != 50000);
-}
-
-void Computer::cycle() {
-	++cycle_num;
-	_memManager.executeCycle();
+	return (cycle_num != MAX_QUANTA);
 }
 

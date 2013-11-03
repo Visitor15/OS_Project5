@@ -8,7 +8,7 @@
 #include <vector>
 
 inline static char generate_PID() {
-	return (char)( (rand() % 52) + 65);
+	return (char)((rand() % 52) + 65);
 }
 
 static const long BURST_RANGE = 5000;

@@ -163,8 +163,9 @@ void MemoryManager::executeCycle() {
 						_proc._can_swap_in = true;
 						_ready_queue.push_back(_running_queue.at(i));
 						_running_queue.erase(_running_queue.begin() + i);
-					}
 
+						break;
+					}
 				}
 			}
 		}
