@@ -30,8 +30,8 @@ public:
 	virtual void addToReadyQueue(const process_t process);
 	virtual struct process_t pullNextFromReadyQueue();
 	virtual std::pair<long, long> canFitFirstFit( process_t process);
-	virtual bool canFitBestFit( process_t process);
-	virtual bool canFitWorstFit( process_t process);
+	virtual std::pair<long, long> canFitBestFit( process_t process);
+	virtual std::pair<long, long> canFitWorstFit( process_t process);
 	virtual bool hasProcRegistered(char _pid);
 	virtual void printMemMap();
 

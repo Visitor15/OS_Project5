@@ -113,14 +113,14 @@ std::pair<long, long> MemoryManager::canFitFirstFit(process_t process) {
 	return std::make_pair<long, long>(-1L, -1L);
 }
 
-bool MemoryManager::canFitBestFit(process_t process) {
+std::pair<long, long> MemoryManager::canFitBestFit(process_t process) {
 
-	return false;
+	return std::make_pair<long, long>(-1L, -1L);
 }
 
-bool MemoryManager::canFitWorstFit(process_t process) {
+std::pair<long, long> MemoryManager::canFitWorstFit(process_t process) {
 
-	return false;
+	return std::make_pair<long, long>(-1L, -1L);
 }
 
 void MemoryManager::addToBackingStore(process_t process) {
