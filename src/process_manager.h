@@ -32,6 +32,7 @@ struct process_t {
 
 	unsigned long _base;
 	unsigned long _limit;
+	unsigned long _size;
 
 	unsigned int _burst_time;
 	unsigned int _priority;
@@ -42,13 +43,14 @@ struct process_t {
 	P_STATE _state;
 
 	long size() {
-		return (_limit - _base);
+		return _size;
 	}
 
 	process_t() :
 		_pid(generate_PID()),
 		_base(0UL),
 		_limit(0UL),
+		_size(0UL),
 		_burst_time(0UL),
 		_priority(0U),
 		_state(SLEEPING) {
@@ -98,6 +100,7 @@ public:
 		_k_proc._pid = '@';
 		_k_proc._base = 0;
 		_k_proc._limit= 120;
+		_k_proc._size = 120;
 		_k_proc._can_swap_out = false;
 		_k_proc._can_swap_in = true;
 

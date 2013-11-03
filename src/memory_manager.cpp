@@ -27,6 +27,7 @@ bool MemoryManager::swapIn(process_t process) {
 	switch (MEM_STRATEGY) {
 	case 0: {
 		std::pair<long, long> _index_pair = canFitFirstFit(process);
+		std::cout << "First POS: " << _index_pair.first << " Second POS: " << _index_pair.second << std::endl;
 		if (_index_pair.first != -1 && _index_pair.second != -1) {
 			process._base = _index_pair.first;
 			process._limit = _index_pair.second;
@@ -115,11 +116,9 @@ std::pair<long, long> MemoryManager::canFitFirstFit(process_t process) {
 				if (_mem_array[p] == ' ') {
 
 					if (p == (MEMORY_SIZE - 1)) {
-//						std::cout << "The end has been reached!" << std::endl;
+						std::cout << "The end has been reached!" << std::endl;
 						return std::make_pair<long, long>(-1L, -1L);
-					}
-
-					if ((p - i) == _size) {
+					} else if ((p - i) == _size) {
 						return std::make_pair<long, long>(i, p);
 					}
 				}
@@ -179,9 +178,12 @@ bool MemoryManager::hasProcRegistered(char _pid) {
 	bool _inRunQueue = false;
 	bool _inReadyQueue = false;
 
+	std::cout << "CHECKING PID: " << _pid << std::endl;
+
 	unsigned long i = 0;
 	for (i = 0; i < _running_queue.size(); i++) {
 		if (_pid == _running_queue.at(i)._pid) {
+			std::cout << _pid << " && " << _running_queue.at(i)._pid << " match!" << std::endl;
 			_inRunQueue = true;
 			break;
 		}
@@ -189,6 +191,7 @@ bool MemoryManager::hasProcRegistered(char _pid) {
 
 	for (i = 0; i < _ready_queue.size(); i++) {
 		if (_pid == _ready_queue.at(i)._pid) {
+			std::cout << "2: " << _pid << " && " << _ready_queue.at(i)._pid << " match!" << std::endl;
 			_inReadyQueue = true;
 			break;
 		}
@@ -201,19 +204,19 @@ int i = 0;
 int _print_state = 0;
 void MemoryManager::printMemMap() {
 	i = 0;
-	for (; i < MEMORY_SIZE; i++) {
-
+	for (; i <= MEMORY_SIZE; i++) {
 		switch (_print_state) {
 		case 0: {
-			if ((i > 0) && (i % 10 == 0)) {
-				std::cout << i;
-			} else if ((i < 100) && (i % 8 != 0)) {
-				std::cout << " ";
-			} else if ((i < 1000) && (i % 7 != 0)) {
-				std::cout << " ";
-			} else if ((i < 10000) && (i % 6 != 0)) {
-				std::cout << " ";
-			}
+//			if ((i > 0) && (i % 10 == 0)) {
+//				std::cout << i;
+//			}
+//			else if ((i < 100) && (i % 8 != 0)) {
+//				std::cout << " ";
+//			} else if ((i < 1000) && (i % 7 != 0)) {
+//				std::cout << " ";
+//			} else if ((i < 10000) && (i % 6 != 0)) {
+//				std::cout << " ";
+//			}
 
 			if ((i > 0) && (i % 80 == 0)) {
 				_print_state += 1;

@@ -25,27 +25,33 @@ void Computer::init() {
 }
 
 void Computer::beginExecution() {
-
 	loadJobs();
 	do {
 		cycle();
-		_memManager.printMemMap();
+//		_memManager.printMemMap();
 	} while (hasJobs());
 
 }
 
 void Computer::loadJobs() {
+	srand(time(0));
 	cycle_num = 0;
 	ProcessBuilder _instance = ProcessBuilder::getInstance();
 	for (int i = 0; i < NUM_OF_PROCESSES; ++i) {
 		process_t _proc = _instance.generateProcess();
 
 		if (_memManager.hasProcRegistered(_proc._pid)) {
-			_proc._pid = generate_PID();
-		}
+			do {
+				_proc._pid = generate_PID();
+			} while (_memManager.hasProcRegistered(_proc._pid));
+		} else {
+			_proc._limit = (unsigned long) ((rand() % 120) + 4);
+			_proc._size = _proc._limit;
 
-		_proc._limit = (unsigned long) ((rand() % 120) + 4);
-		_memManager.addToReadyQueue(_proc);
+			std::cout << "Process: " << _proc._pid << " Generated size: " << _proc._size << std::endl;
+
+			_memManager.addToReadyQueue(_proc);
+		}
 	}
 }
 
