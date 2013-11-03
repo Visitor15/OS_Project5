@@ -27,7 +27,7 @@ bool MemoryManager::swapIn(process_t process) {
 	switch (MEM_STRATEGY) {
 	case 0: {
 		std::pair<long, long> _index_pair = canFitFirstFit(process);
-		std::cout << "First POS: " << _index_pair.first << " Second POS: " << _index_pair.second << std::endl;
+//		std::cout << "First POS: " << _index_pair.first << " Second POS: " << _index_pair.second << std::endl;
 		if (_index_pair.first != -1 && _index_pair.second != -1) {
 			process._base = _index_pair.first;
 			process._limit = _index_pair.second;
@@ -50,8 +50,8 @@ bool MemoryManager::swapIn(process_t process) {
 	}
 
 	if (_can_fit) {
-		std::cout << "Swapping in " << process._pid << std::endl;
-		std::cout << "Size: " << (process._limit - process._base) << std::endl;
+//		std::cout << "Swapping in " << process._pid << std::endl;
+//		std::cout << "Size: " << (process._limit - process._base) << std::endl;
 //		std::cout << "BASE: " << process._base << " LIMIT: " << process._limit
 //				<< std::endl;
 		for (unsigned long i = process._base; i < process._limit; ++i) {
@@ -59,32 +59,17 @@ bool MemoryManager::swapIn(process_t process) {
 			_mem_array[i] = process._pid;
 		}
 
-		process._burst_time = (rand() % 5) + 1;
+		process._burst_time = (rand() % 5000) + 100;
+
+		process._can_swap_in = false;
+		process._can_swap_out = true;
 
 		_running_queue.push_back(process);
 
 //		printMemMap();
-
-		return true;
-	} else {
-		for (unsigned long i = 0; i < _running_queue.size(); i++) {
-			process_t& _proc = _running_queue[i];
-			if (_proc._can_swap_out) {
-				if (swapOut(_proc)) {
-					_proc._can_swap_out = false;
-					_proc._can_swap_in = true;
-					_ready_queue.push_back(_running_queue.at(i));
-					_running_queue.erase(_running_queue.begin() + i);
-
-					return true;
-				}
-
-			}
-		}
-
 	}
 
-	return false;
+	return _can_fit;
 }
 
 bool MemoryManager::swapOut(const process_t process) {
@@ -93,8 +78,8 @@ bool MemoryManager::swapOut(const process_t process) {
 		return false;
 	}
 
-	std::cout << "Swapping out " << process._pid << std::endl;
-	std::cout << "Freed: " << (process._limit - process._base) << std::endl;
+//	std::cout << "Swapping out " << process._pid << std::endl;
+//	std::cout << "Freed: " << (process._limit - process._base) << std::endl;
 
 	for (unsigned int i = process._base; i < process._limit; ++i) {
 		_mem_array[i] = ' ';
@@ -116,7 +101,7 @@ std::pair<long, long> MemoryManager::canFitFirstFit(process_t process) {
 				if (_mem_array[p] == ' ') {
 
 					if (p == (MEMORY_SIZE - 1)) {
-						std::cout << "The end has been reached!" << std::endl;
+//						std::cout << "The end has been reached!" << std::endl;
 						return std::make_pair<long, long>(-1L, -1L);
 					} else if ((p - i) == _size) {
 						return std::make_pair<long, long>(i, p);
@@ -169,6 +154,19 @@ void MemoryManager::executeCycle() {
 		if (swapIn(_ready_queue.at(i))) {
 			_ready_queue.erase(_ready_queue.begin() + i);
 			break;
+		} else {
+			for (unsigned long i = 0; i < _running_queue.size(); i++) {
+				process_t& _proc = _running_queue[i];
+				if (_proc._can_swap_out) {
+					if (swapOut(_proc)) {
+						_proc._can_swap_out = false;
+						_proc._can_swap_in = true;
+						_ready_queue.push_back(_running_queue.at(i));
+						_running_queue.erase(_running_queue.begin() + i);
+					}
+
+				}
+			}
 		}
 	}
 
@@ -178,12 +176,12 @@ bool MemoryManager::hasProcRegistered(char _pid) {
 	bool _inRunQueue = false;
 	bool _inReadyQueue = false;
 
-	std::cout << "CHECKING PID: " << _pid << std::endl;
+//	std::cout << "CHECKING PID: " << _pid << std::endl;
 
 	unsigned long i = 0;
 	for (i = 0; i < _running_queue.size(); i++) {
 		if (_pid == _running_queue.at(i)._pid) {
-			std::cout << _pid << " && " << _running_queue.at(i)._pid << " match!" << std::endl;
+//			std::cout << _pid << " && " << _running_queue.at(i)._pid << " match!" << std::endl;
 			_inRunQueue = true;
 			break;
 		}
@@ -191,7 +189,7 @@ bool MemoryManager::hasProcRegistered(char _pid) {
 
 	for (i = 0; i < _ready_queue.size(); i++) {
 		if (_pid == _ready_queue.at(i)._pid) {
-			std::cout << "2: " << _pid << " && " << _ready_queue.at(i)._pid << " match!" << std::endl;
+//			std::cout << "2: " << _pid << " && " << _ready_queue.at(i)._pid << " match!" << std::endl;
 			_inReadyQueue = true;
 			break;
 		}
@@ -203,6 +201,10 @@ bool MemoryManager::hasProcRegistered(char _pid) {
 int i = 0;
 int _print_state = 0;
 void MemoryManager::printMemMap() {
+	std::cout << "\n\n===================================" << std::endl;
+	std::cout << "\tMEMORY MAP" << std::endl;
+	std::cout << "===================================" << std::endl;
+
 	i = 0;
 	for (; i <= MEMORY_SIZE; i++) {
 		switch (_print_state) {

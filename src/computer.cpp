@@ -28,9 +28,10 @@ void Computer::beginExecution() {
 	loadJobs();
 	do {
 		cycle();
-//		_memManager.printMemMap();
+		if (cycle_num % 5000 == 0) {
+			_memManager.printMemMap();
+		}
 	} while (hasJobs());
-
 }
 
 void Computer::loadJobs() {
@@ -48,7 +49,8 @@ void Computer::loadJobs() {
 			_proc._limit = (unsigned long) ((rand() % 120) + 4);
 			_proc._size = _proc._limit;
 
-			std::cout << "Process: " << _proc._pid << " Generated size: " << _proc._size << std::endl;
+			std::cout << "Process: " << _proc._pid << " Generated size: "
+					<< _proc._size << std::endl;
 
 			_memManager.addToReadyQueue(_proc);
 		}
@@ -56,7 +58,7 @@ void Computer::loadJobs() {
 }
 
 bool Computer::hasJobs() {
-	return (cycle_num != 100);
+	return (cycle_num != 50000);
 }
 
 void Computer::cycle() {
