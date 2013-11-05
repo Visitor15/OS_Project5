@@ -16,7 +16,7 @@
 static const int MAX_QUANTA = 50000;
 static const int PRINT_INTERVAL = 5000;
 static const int NUM_OF_PROCESSES = 60;
-static int _mem_strategy = 0;
+static int _mem_strategy;
 static MemoryManager _memManager;
 
 class Computer {
@@ -27,7 +27,11 @@ public:
 	}
 
 private:
-	Computer() {};
+	Computer() {
+		cycle_num = 0;
+		_mem_strategy = 0;
+	}
+	;
 	Computer(Computer const&);
 	void operator=(Computer const&);
 	virtual ~Computer();
@@ -39,7 +43,7 @@ private:
 	bool hasJobs();
 	void cycle();
 
-	int cycle_num = 0;
+	int cycle_num;
 
 };
 

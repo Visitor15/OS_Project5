@@ -7,14 +7,7 @@
 
 static const long BURST_RANGE = 5000;
 
-static std::vector<int> _pid_list;
-static char generate_PID() {
-	int _index = ((rand() % _pid_list.size()));
-	char _pid = (char) _pid_list.at(_index);
-	_pid_list.erase(_pid_list.begin() + _index);
 
-	return _pid;
-}
 
 enum P_STATE {
 	SLEEPING = 0, RUNNING = 1, WAITING = 2, STOPPED = 3
@@ -28,11 +21,11 @@ enum P_PRIORITY {
  *	STRUCT
  */
 struct process_t {
-	unsigned char _pid;
+	char _pid;
 
 	unsigned long _base;
 	unsigned long _limit;
-	unsigned long _size;
+	long _size;
 
 	unsigned int _burst_time;
 	unsigned int _priority;
@@ -47,7 +40,7 @@ struct process_t {
 	}
 
 	process_t() :
-			_pid(generate_PID()), _base(0UL), _limit(0UL), _size(0UL), _burst_time(
+			_pid(' '), _base(0UL), _limit(0UL), _size(0), _burst_time(
 					0UL), _priority(0U), _state(SLEEPING) {
 		_can_swap_out = false;
 		_can_swap_in = true;
@@ -63,8 +56,10 @@ inline static bool isKernelThread(const process_t proc) {
  *
  *	Implemented as a singleton builder to generate base processes.
  */
+static std::vector<int> _pid_list;
 static std::vector<process_t> _cached_history;
 class ProcessBuilder {
+
 
 private:
 	ProcessBuilder() {
@@ -75,6 +70,9 @@ public:
 	ProcessBuilder(ProcessBuilder const&) {
 	}
 	;
+
+
+
 	static ProcessBuilder& getInstance() {
 		static ProcessBuilder _instance;
 
@@ -87,13 +85,24 @@ public:
 		return _instance;
 	}
 
+
+
+	static char generate_PID() {
+		int _index = ((rand() % _pid_list.size()));
+		char _pid = (char) _pid_list.at(_index);
+		_pid_list.erase(_pid_list.begin() + _index);
+
+		return _pid;
+	}
+
 	/*
 	 *	FUNCTION
 	 */
 	struct process_t generateProcess() {
 		process_t _p;
 
-		_p._burst_time = (rand() % 100) + 10;
+		_p._pid = generate_PID();
+		_p._burst_time = (rand() % 4900) + 100;
 
 		_cached_history.push_back(_p);
 

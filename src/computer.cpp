@@ -17,6 +17,7 @@ void Computer::boot() {
 }
 
 void Computer::init() {
+
 	_memManager.init();
 	_memManager.swapIn(ProcessBuilder::getInstance().generateKernelProcess());
 	beginExecution();
@@ -45,7 +46,7 @@ void Computer::loadJobs() {
 	for (int i = 0; i < NUM_OF_PROCESSES - 1; ++i) {
 		process_t _proc = _instance.generateProcess();
 
-		_proc._limit = (unsigned long) ((rand() % 120) + 4);
+		_proc._limit = (unsigned long) ((rand() % 154) + 4);
 		_proc._size = _proc._limit;
 
 		std::cout << "Process: " << _proc._pid << " Generated size: "

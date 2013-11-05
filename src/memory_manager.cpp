@@ -8,8 +8,8 @@
 #include "memory_manager.h"
 
 MemoryManager::MemoryManager() {
-	// TODO Auto-generated constructor stub
-
+	MEM_STRATEGY = 0;
+	_m_cycle_num = 0;
 }
 
 MemoryManager::~MemoryManager() {
@@ -71,8 +71,8 @@ bool MemoryManager::swapIn(process_t process) {
 	}
 
 	if (_process_swapped) {
-		std::cout << "Swapping in " << process._pid << std::endl;
-		std::cout << "Size: " << (process._limit - process._base) << std::endl;
+//		std::cout << "Swapping in " << process._pid << std::endl;
+//		std::cout << "Size: " << (process._limit - process._base) << std::endl;
 //		std::cout << "BASE: " << process._base << " LIMIT: " << process._limit
 //				<< std::endl;
 		for (unsigned long i = process._base; i < process._limit; ++i) {
@@ -80,14 +80,14 @@ bool MemoryManager::swapIn(process_t process) {
 			_mem_array[i] = process._pid;
 		}
 
-		process._burst_time = (rand() % 100) + 10;
+		process._burst_time = (rand() % 4900) + 100;
 
 		process._can_swap_in = false;
 		process._can_swap_out = false;
 
 		_running_queue.push_back(process);
 
-		printMemMap();
+//		printMemMap();
 	}
 
 	return _process_swapped;
@@ -99,14 +99,14 @@ bool MemoryManager::swapOut(const process_t process) {
 		return false;
 	}
 
-	std::cout << "Swapping out " << process._pid << std::endl;
-	std::cout << "Freed: " << (process._limit - process._base) << std::endl;
+//	std::cout << "Swapping out " << process._pid << std::endl;
+//	std::cout << "Freed: " << (process._limit - process._base) << std::endl;
 
 	for (unsigned int i = process._base; i < process._limit; ++i) {
 		_mem_array[i] = ' ';
 	}
 
-	printMemMap();
+//	printMemMap();
 
 	return true;
 }
@@ -157,8 +157,12 @@ std::pair<long, long> MemoryManager::canFitBestFit(process_t process) {
 
 							if (_mem_array[k] != ' '
 									|| k == (MEMORY_SIZE - 1)) {
-									_pos_list.push_back(std::make_pair<long, std::pair<long, long> >(_length, std::make_pair<long, long>(i, p + 1)));
-								}
+								_pos_list.push_back(
+										std::make_pair<long,
+												std::pair<long, long> >(_length,
+												std::make_pair<long, long>(i,
+														p + 1)));
+							}
 						}
 					}
 				} else {
@@ -168,8 +172,8 @@ std::pair<long, long> MemoryManager::canFitBestFit(process_t process) {
 		}
 	}
 
-	if(_pos_list.size() > 0) {
-		for(int i = 1; i < _pos_list.size(); i++) {
+	if (_pos_list.size() > 0) {
+		for (int i = 1; i < _pos_list.size(); i++) {
 			_index = ((_pos_list.at(i) < _pos_list.at(_index)) ? i : _index);
 		}
 
@@ -202,8 +206,12 @@ std::pair<long, long> MemoryManager::canFitWorstFit(process_t process) {
 
 							if (_mem_array[k] != ' '
 									|| k == (MEMORY_SIZE - 1)) {
-									_pos_list.push_back(std::make_pair<long, std::pair<long, long> >(_length, std::make_pair<long, long>(i, p + 1)));
-								}
+								_pos_list.push_back(
+										std::make_pair<long,
+												std::pair<long, long> >(_length,
+												std::make_pair<long, long>(i,
+														p + 1)));
+							}
 						}
 					}
 				} else {
@@ -213,8 +221,8 @@ std::pair<long, long> MemoryManager::canFitWorstFit(process_t process) {
 		}
 	}
 
-	if(_pos_list.size() > 0) {
-		for(int i = 1; i < _pos_list.size(); i++) {
+	if (_pos_list.size() > 0) {
+		for (int i = 1; i < _pos_list.size(); i++) {
 			_index = ((_pos_list.at(i) > _pos_list.at(_index)) ? i : _index);
 		}
 
@@ -248,6 +256,8 @@ void MemoryManager::executeCycle() {
 //	std::cout << "RUNNING QUEUE SIZE: " << _running_queue.size() << std::endl;
 //	std::cout << "READY QUEUE SIZE: " << _ready_queue.size() << std::endl;
 
+	++_m_cycle_num;
+
 	for (unsigned long i = 0; i < _running_queue.size(); ++i) {
 
 		process_t& _proc = _running_queue[i];
@@ -262,8 +272,9 @@ void MemoryManager::executeCycle() {
 			_ready_queue.erase(_ready_queue.begin());
 		} else {
 
-			std::cout << "Could not fit " << pullNextFromReadyQueue()._pid << std::endl;
-			std::cout << "Size: " << pullNextFromReadyQueue()._size;
+//			std::cout << "Could not fit " << pullNextFromReadyQueue()._pid
+//					<< std::endl;
+//			std::cout << "Size: " << pullNextFromReadyQueue()._size;
 
 			bool proc_swapped = false;
 			for (unsigned long i = 0; i < _running_queue.size(); i++) {
@@ -279,7 +290,7 @@ void MemoryManager::executeCycle() {
 					}
 				}
 
-				if(proc_swapped) {
+				if (proc_swapped) {
 					proc_swapped = false;
 					break;
 				}
@@ -315,12 +326,69 @@ bool MemoryManager::hasProcRegistered(char _pid) {
 	return (_inRunQueue || _inReadyQueue) ? true : false;
 }
 
+process_t MemoryManager::getLargestProcess() {
+	process_t proc;
+	proc._size = -1L;
+	int i;
+	if (_running_queue.size() > 0) {
+		proc = _running_queue.at(0);
+		for (i = 0; i < _running_queue.size(); i++) {
+			proc = (_running_queue.at(i)._size > proc._size) ?
+					(_running_queue.at(i)) : proc;
+		}
+	}
+
+//	if (_ready_queue.size() > 0) {
+//		for (i = 0; i < _ready_queue.size(); i++) {
+//			proc = (_ready_queue.at(i)._size > proc._size) ?
+//					(_ready_queue.at(i)) : proc;
+//		}
+//	}
+
+	return proc;
+}
+
+process_t MemoryManager::getSmallestProcess() {
+	process_t proc;
+	proc._size = -1L;
+	int i;
+	if (_running_queue.size() > 0) {
+		proc = _running_queue.at(0);
+		for (i = 0; i < _running_queue.size(); i++) {
+			proc = (proc._size > _running_queue.at(i)._size) ?
+					(_running_queue.at(i)) : proc;
+		}
+	}
+
+//	if (_ready_queue.size() > 0) {
+//		if (proc._size == -1) {
+//			proc = _ready_queue.at(0);
+//		}
+//		for (i = 0; i < _ready_queue.size(); i++) {
+//			proc = (proc._size > _ready_queue.at(i)._size) ?
+//					(_ready_queue.at(i)) : proc;
+//		}
+//	}
+
+	return proc;
+}
+
+long MemoryManager::getNumberOfFreeBlocks() {
+	long val = 0L;
+
+	for (int i = 0; i < MEMORY_SIZE; i++) {
+		if (_mem_array[i] == ' ') {
+			++val;
+		}
+	}
+
+	return val;
+}
+
 int i = 0;
 int _print_state = 0;
 void MemoryManager::printMemMap() {
-	std::cout << "\n\n===================================" << std::endl;
-	std::cout << "\tMEMORY MAP" << std::endl;
-	std::cout << "===================================" << std::endl;
+	formatDetails();
 
 	i = 0;
 	for (; i <= MEMORY_SIZE; i++) {
@@ -378,5 +446,113 @@ void MemoryManager::printMemMap() {
 		}
 		}
 	}
+
+	std::cout
+			<< "================================================================================"
+			<< std::endl;
+}
+
+void MemoryManager::formatDetails() {
+	std::string val;
+	std::string tmp;
+	std::stringstream _stream;
+	process_t proc;
+
+	std::cout
+			<< "\n================================================================================"
+			<< std::endl;
+	std::cout << "MEMORY MAP" << std::endl;
+	std::cout
+			<< "================================================================================"
+			<< std::endl;
+
+	val += "QUANTA ELAPSED:\t";
+
+	_stream << _m_cycle_num;
+	_stream >> tmp;
+	val.append(tmp);
+
+	val.append("\n");
+
+	val.append("MEMORY:\t\t\t");
+	_stream.clear();
+	_stream << MEMORY_SIZE;
+	tmp.clear();
+	_stream >> tmp;
+	val.append(tmp);
+
+	val.append("\t\t\tUSED:\t\t");
+	_stream.clear();
+	_stream << (MEMORY_SIZE - getNumberOfFreeBlocks());
+	tmp.clear();
+	_stream >> tmp;
+	val.append(tmp);
+
+	val.append("\t\t\t\tFREE:\t\t");
+	_stream.clear();
+	_stream << getNumberOfFreeBlocks();
+	tmp.clear();
+	_stream >> tmp;
+	val.append(tmp);
+
+	val.append("\n");
+
+	val.append("PROCESSES:\t\t");
+	_stream.clear();
+	_stream << (_running_queue.size() + _ready_queue.size());
+	tmp.clear();
+	_stream >> tmp;
+	val.append(tmp);
+
+	val.append("\t\t\t\tLOADED:\t\t");
+	_stream.clear();
+	_stream << _running_queue.size();
+	tmp.clear();
+	_stream >> tmp;
+	val.append(tmp);
+
+	val.append("\t\t\t\tUNLOADED:\t");
+	_stream.clear();
+	_stream << _ready_queue.size();
+	tmp.clear();
+	_stream >> tmp;
+	val.append(tmp);
+
+	val.append("\n");
+
+	val.append("FREE BLOCKS:\t");
+	_stream.clear();
+	_stream << getNumberOfFreeBlocks();
+	tmp.clear();
+	_stream >> tmp;
+	val.append(tmp);
+
+	proc = getLargestProcess();
+	val.append("\t\t\t\tLARGEST:\t");
+	_stream.clear();
+	_stream << proc._size;
+	tmp.clear();
+	_stream >> tmp;
+	tmp.append(" (");
+	tmp += proc._pid;
+	tmp.append(")");
+	val.append(tmp);
+
+	proc = getSmallestProcess();
+	val.append("\t\t\tSMALLEST:\t");
+	_stream.clear();
+	_stream << proc._size;
+	tmp.clear();
+	_stream >> tmp;
+	tmp.append(" (");
+	tmp += proc._pid;
+	tmp.append(")");
+	val.append(tmp);
+
+	std::cout << val << std::endl;
+
+	std::cout
+			<< "================================================================================"
+			<< std::endl;
 }
 

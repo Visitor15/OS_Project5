@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
+#include <sstream>
 #include "process_manager.h"
 
 static const long MEMORY_SIZE = 1040;
@@ -20,13 +21,17 @@ public:
 	MemoryManager();
 	~MemoryManager();
 
-	int MEM_STRATEGY = 0;
+	int MEM_STRATEGY;
 
 	void init();
 	void executeCycle();
 	bool swapIn(const process_t process);
 	bool swapOut(const process_t process);
 	void addToBackingStore(const process_t process);
+	long getNumberOfFreeBlocks();
+	process_t getLargestProcess();
+	process_t getSmallestProcess();
+	void formatDetails();
 	struct process_t pullNextFromBackStore();
 	void addToReadyQueue(const process_t process);
 	struct process_t pullNextFromReadyQueue();
@@ -38,6 +43,8 @@ public:
 	void printMemMap();
 
 private:
+	long _m_cycle_num;
+
 	char _mem_array[MEMORY_SIZE];
 
 	std::vector<struct process_t> _running_queue;
