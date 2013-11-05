@@ -22,57 +22,36 @@ void MemoryManager::init() {
 }
 
 bool MemoryManager::swapIn(process_t process) {
-	bool _process_swapped = false;
-	std::pair<long, long> _index_pair;
-
-//	std::cout << "Swapping with MEM STRATEGY: " << MEM_STRATEGY << std::endl;
+	bool _can_fit = false;
 
 	switch (MEM_STRATEGY) {
 	case 0: {
-		_index_pair = canFitFirstFit(process);
+		std::pair<long, long> _index_pair = canFitFirstFit(process);
 //		std::cout << "First POS: " << _index_pair.first << " Second POS: " << _index_pair.second << std::endl;
 		if (_index_pair.first != -1 && _index_pair.second != -1) {
 			process._base = _index_pair.first;
 			process._limit = _index_pair.second;
 
-			_process_swapped = true;
+			_can_fit = true;
 		} else {
-			_process_swapped = false;
+			_can_fit = false;
 		}
 
 		break;
 	}
 	case 1: {
-		_index_pair = canFitBestFit(process);
-		if (_index_pair.first != -1 && _index_pair.second != -1) {
-			process._base = _index_pair.first;
-			process._limit = _index_pair.second;
-
-			_process_swapped = true;
-		} else {
-			_process_swapped = false;
-		}
-
+		_can_fit = canFitBestFit(process);
 		break;
 	}
-	case 2: {
-		_index_pair = canFitWorstFit(process);
-		if (_index_pair.first != -1 && _index_pair.second != -1) {
-			process._base = _index_pair.first;
-			process._limit = _index_pair.second;
-
-			_process_swapped = true;
-		} else {
-			_process_swapped = false;
-		}
-
+	case 3: {
+		_can_fit = canFitWorstFit(process);
 		break;
 	}
 	}
 
-	if (_process_swapped) {
-		std::cout << "Swapping in " << process._pid << std::endl;
-		std::cout << "Size: " << (process._limit - process._base) << std::endl;
+	if (_can_fit) {
+//		std::cout << "Swapping in " << process._pid << std::endl;
+//		std::cout << "Size: " << (process._limit - process._base) << std::endl;
 //		std::cout << "BASE: " << process._base << " LIMIT: " << process._limit
 //				<< std::endl;
 		for (unsigned long i = process._base; i < process._limit; ++i) {
@@ -80,17 +59,17 @@ bool MemoryManager::swapIn(process_t process) {
 			_mem_array[i] = process._pid;
 		}
 
-		process._burst_time = (rand() % 100) + 10;
+		process._burst_time = (rand() % 5000) + 100;
 
 		process._can_swap_in = false;
-		process._can_swap_out = false;
+		process._can_swap_out = true;
 
 		_running_queue.push_back(process);
 
-		printMemMap();
+//		printMemMap();
 	}
 
-	return _process_swapped;
+	return _can_fit;
 }
 
 bool MemoryManager::swapOut(const process_t process) {
@@ -99,14 +78,14 @@ bool MemoryManager::swapOut(const process_t process) {
 		return false;
 	}
 
-	std::cout << "Swapping out " << process._pid << std::endl;
-	std::cout << "Freed: " << (process._limit - process._base) << std::endl;
+//	std::cout << "Swapping out " << process._pid << std::endl;
+//	std::cout << "Freed: " << (process._limit - process._base) << std::endl;
 
 	for (unsigned int i = process._base; i < process._limit; ++i) {
 		_mem_array[i] = ' ';
 	}
 
-	printMemMap();
+//	printMemMap();
 
 	return true;
 }
@@ -135,93 +114,13 @@ std::pair<long, long> MemoryManager::canFitFirstFit(process_t process) {
 }
 
 std::pair<long, long> MemoryManager::canFitBestFit(process_t process) {
-	std::pair<long, long> _pair = std::make_pair<long, long>(-1L, -1L);
-	std::vector<std::pair<long, std::pair<long, long> > > _pos_list;
 
-	int _index = 0;
-	long _size = process._size;
-	int _free_length = MEMORY_SIZE;
-	int _length = 0;
-	for (long i = 0; i < MEMORY_SIZE; i++) {
-		if (_mem_array[i] == ' ') {
-			for (long p = i; p < MEMORY_SIZE; p++) {
-
-				if (_mem_array[p] == ' ') {
-					if ((p - i) == _size) {
-						_free_length = MEMORY_SIZE;
-						_length = 0;
-						for (long k = p; k < MEMORY_SIZE; k++) {
-							if (_mem_array[k] == ' ') {
-								++_length;
-							}
-
-							if (_mem_array[k] != ' '
-									|| k == (MEMORY_SIZE - 1)) {
-									_pos_list.push_back(std::make_pair<long, std::pair<long, long> >(_length, std::make_pair<long, long>(i, p + 1)));
-								}
-						}
-					}
-				} else {
-					break;
-				}
-			}
-		}
-	}
-
-	if(_pos_list.size() > 0) {
-		for(int i = 1; i < _pos_list.size(); i++) {
-			_index = ((_pos_list.at(i) < _pos_list.at(_index)) ? i : _index);
-		}
-
-		return _pos_list.at(_index).second;
-	}
-
-	return _pair;
+	return std::make_pair<long, long>(-1L, -1L);
 }
 
 std::pair<long, long> MemoryManager::canFitWorstFit(process_t process) {
-	std::pair<long, long> _pair = std::make_pair<long, long>(-1L, -1L);
-	std::vector<std::pair<long, std::pair<long, long> > > _pos_list;
 
-	int _index = 0;
-	long _size = process._size;
-	int _free_length = MEMORY_SIZE;
-	int _length = 0;
-	for (long i = 0; i < MEMORY_SIZE; i++) {
-		if (_mem_array[i] == ' ') {
-			for (long p = i; p < MEMORY_SIZE; p++) {
-
-				if (_mem_array[p] == ' ') {
-					if ((p - i) == _size) {
-						_free_length = MEMORY_SIZE;
-						_length = 0;
-						for (long k = p; k < MEMORY_SIZE; k++) {
-							if (_mem_array[k] == ' ') {
-								++_length;
-							}
-
-							if (_mem_array[k] != ' '
-									|| k == (MEMORY_SIZE - 1)) {
-									_pos_list.push_back(std::make_pair<long, std::pair<long, long> >(_length, std::make_pair<long, long>(i, p + 1)));
-								}
-						}
-					}
-				} else {
-					break;
-				}
-			}
-		}
-	}
-
-	if(_pos_list.size() > 0) {
-		for(int i = 1; i < _pos_list.size(); i++) {
-			_index = ((_pos_list.at(i) > _pos_list.at(_index)) ? i : _index);
-		}
-
-		return _pos_list.at(_index).second;
-	}
-
-	return _pair;
+	return std::make_pair<long, long>(-1L, -1L);
 }
 
 void MemoryManager::addToBackingStore(process_t process) {
@@ -240,14 +139,8 @@ struct process_t MemoryManager::pullNextFromReadyQueue() {
 	return _ready_queue.at(0);
 }
 
-bool MemoryManager::hasReadyProcess() {
-	return _ready_queue.size() > 0;
-}
-
 void MemoryManager::executeCycle() {
-//	std::cout << "RUNNING QUEUE SIZE: " << _running_queue.size() << std::endl;
-//	std::cout << "READY QUEUE SIZE: " << _ready_queue.size() << std::endl;
-
+//	std::cout << "Running Queue size: " << _running_queue.size() << std::endl;
 	for (unsigned long i = 0; i < _running_queue.size(); ++i) {
 
 		process_t& _proc = _running_queue[i];
@@ -257,15 +150,11 @@ void MemoryManager::executeCycle() {
 		}
 	}
 
-	if (hasReadyProcess()) {
-		if (swapIn(pullNextFromReadyQueue())) {
-			_ready_queue.erase(_ready_queue.begin());
+	for (unsigned long i = 0; i < _ready_queue.size(); ++i) {
+		if (swapIn(_ready_queue.at(i))) {
+			_ready_queue.erase(_ready_queue.begin() + i);
+			break;
 		} else {
-
-			std::cout << "Could not fit " << pullNextFromReadyQueue()._pid << std::endl;
-			std::cout << "Size: " << pullNextFromReadyQueue()._size;
-
-			bool proc_swapped = false;
 			for (unsigned long i = 0; i < _running_queue.size(); i++) {
 				process_t& _proc = _running_queue[i];
 				if (_proc._can_swap_out) {
@@ -274,14 +163,9 @@ void MemoryManager::executeCycle() {
 						_proc._can_swap_in = true;
 						_ready_queue.push_back(_running_queue.at(i));
 						_running_queue.erase(_running_queue.begin() + i);
-						proc_swapped = true;
-//						std::cout << "Swapped out: " << i << std::endl;
-					}
-				}
 
-				if(proc_swapped) {
-					proc_swapped = false;
-					break;
+						break;
+					}
 				}
 			}
 		}

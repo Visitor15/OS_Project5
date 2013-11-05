@@ -13,27 +13,29 @@
 #include <iostream>
 #include "process_manager.h"
 
-static const unsigned long MEMORY_SIZE = 1040UL;
-
-static int MEM_STRATEGY = 0;
+static const long MEMORY_SIZE = 1040;
 
 class MemoryManager {
 public:
 	MemoryManager();
-	virtual ~MemoryManager();
-	virtual void init();
-	virtual void executeCycle();
-	virtual bool swapIn(const process_t process);
-	virtual bool swapOut(const process_t process);
-	virtual void addToBackingStore(const process_t process);
-	virtual struct process_t pullNextFromBackStore();
-	virtual void addToReadyQueue(const process_t process);
-	virtual struct process_t pullNextFromReadyQueue();
-	virtual std::pair<long, long> canFitFirstFit( process_t process);
-	virtual std::pair<long, long> canFitBestFit( process_t process);
-	virtual std::pair<long, long> canFitWorstFit( process_t process);
-	virtual bool hasProcRegistered(char _pid);
-	virtual void printMemMap();
+	~MemoryManager();
+
+	int MEM_STRATEGY = 0;
+
+	void init();
+	void executeCycle();
+	bool swapIn(const process_t process);
+	bool swapOut(const process_t process);
+	void addToBackingStore(const process_t process);
+	struct process_t pullNextFromBackStore();
+	void addToReadyQueue(const process_t process);
+	struct process_t pullNextFromReadyQueue();
+	std::pair<long, long> canFitFirstFit(process_t process);
+	std::pair<long, long> canFitBestFit(process_t process);
+	std::pair<long, long> canFitWorstFit(process_t process);
+	bool hasProcRegistered(char _pid);
+	bool hasReadyProcess();
+	void printMemMap();
 
 private:
 	char _mem_array[MEMORY_SIZE];

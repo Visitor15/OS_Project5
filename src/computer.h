@@ -16,6 +16,7 @@
 static const int MAX_QUANTA = 50000;
 static const int PRINT_INTERVAL = 5000;
 static const int NUM_OF_PROCESSES = 60;
+static int _mem_strategy = 0;
 static MemoryManager _memManager;
 
 class Computer {
