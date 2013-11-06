@@ -118,7 +118,7 @@ std::pair<long, long> MemoryManager::canFitFirstFit(process_t process) {
 	for (unsigned long i = 0; i < MEMORY_SIZE; ++i) {
 		if (_mem_array[i] == ' ') {
 //			std::cout << "MEM OBJ: " << _mem_array[i];
-			for (unsigned long p = i; p < MEMORY_SIZE; ++p) {
+			for (unsigned long p = i; p < MEMORY_SIZE; p++) {
 				if (_mem_array[p] == ' ') {
 
 					if (p == (MEMORY_SIZE - 1)) {
@@ -127,6 +127,8 @@ std::pair<long, long> MemoryManager::canFitFirstFit(process_t process) {
 					} else if ((p - i) == _size) {
 						return std::make_pair<long, long>(i, p);
 					}
+				} else {
+					break;
 				}
 			}
 		}
@@ -394,8 +396,27 @@ void MemoryManager::printMemMap() {
 	for (; i <= MEMORY_SIZE; i++) {
 		switch (_print_state) {
 		case 0: {
-//			if ((i > 0) && (i % 10 == 0)) {
-//				std::cout << i;
+
+			if (i > 0) {
+				if (i % 5 == 0) {
+					if (i % 10 == 0) {
+						if(i < 100) {
+							std::cout << "        " << i;
+						} else if (i < 1000) {
+							std::cout << "       " << i;
+						} else {
+							std::cout << "      " << i;
+						}
+					} else {
+//					std::cout << " ";
+					}
+				} else {
+//					std::cout << " ";
+				}
+			}
+
+//			if ((i % 10 == 0)) {
+//				std::cout << "\t" << i;
 //			}
 //			else if ((i < 100) && (i % 8 != 0)) {
 //				std::cout << " ";
@@ -407,7 +428,7 @@ void MemoryManager::printMemMap() {
 
 			if ((i > 0) && (i % 80 == 0)) {
 				_print_state += 1;
-				std::cout << std::endl;
+				std::cout << "\n";
 				i = (i - 80);
 			}
 
@@ -472,23 +493,23 @@ void MemoryManager::formatDetails() {
 	_stream >> tmp;
 	val.append(tmp);
 
-	val.append("\n");
+	val.append("\n\n");
 
-	val.append("MEMORY:\t\t\t");
+	val.append("MEMORY:\t\t");
 	_stream.clear();
 	_stream << MEMORY_SIZE;
 	tmp.clear();
 	_stream >> tmp;
 	val.append(tmp);
 
-	val.append("\t\t\tUSED:\t\t");
+	val.append("\t\tUSED:\t");
 	_stream.clear();
 	_stream << (MEMORY_SIZE - getNumberOfFreeBlocks());
 	tmp.clear();
 	_stream >> tmp;
 	val.append(tmp);
 
-	val.append("\t\t\t\tFREE:\t\t");
+	val.append("\t\tFREE:\t\t");
 	_stream.clear();
 	_stream << getNumberOfFreeBlocks();
 	tmp.clear();
@@ -497,21 +518,21 @@ void MemoryManager::formatDetails() {
 
 	val.append("\n");
 
-	val.append("PROCESSES:\t\t");
+	val.append("PROCESSES:\t");
 	_stream.clear();
 	_stream << (_running_queue.size() + _ready_queue.size());
 	tmp.clear();
 	_stream >> tmp;
 	val.append(tmp);
 
-	val.append("\t\t\t\tLOADED:\t\t");
+	val.append("\t\tLOADED:\t");
 	_stream.clear();
 	_stream << _running_queue.size();
 	tmp.clear();
 	_stream >> tmp;
 	val.append(tmp);
 
-	val.append("\t\t\t\tUNLOADED:\t");
+	val.append("\t\tUNLOADED:\t");
 	_stream.clear();
 	_stream << _ready_queue.size();
 	tmp.clear();
@@ -528,7 +549,7 @@ void MemoryManager::formatDetails() {
 	val.append(tmp);
 
 	proc = getLargestProcess();
-	val.append("\t\t\t\tLARGEST:\t");
+	val.append("\t\tLARGEST:");
 	_stream.clear();
 	_stream << proc._size;
 	tmp.clear();
@@ -539,7 +560,7 @@ void MemoryManager::formatDetails() {
 	val.append(tmp);
 
 	proc = getSmallestProcess();
-	val.append("\t\t\tSMALLEST:\t");
+	val.append("\t\tSMALLEST:\t");
 	_stream.clear();
 	_stream << proc._size;
 	tmp.clear();
