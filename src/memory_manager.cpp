@@ -25,12 +25,9 @@ bool MemoryManager::swapIn(process_t process) {
 	bool _process_swapped = false;
 	std::pair<long, long> _index_pair;
 
-//	std::cout << "Swapping with MEM STRATEGY: " << MEM_STRATEGY << std::endl;
-
 	switch (MEM_STRATEGY) {
 	case 0: {
 		_index_pair = canFitFirstFit(process);
-//		std::cout << "First POS: " << _index_pair.first << " Second POS: " << _index_pair.second << std::endl;
 		if (_index_pair.first != -1 && _index_pair.second != -1) {
 			process._base = _index_pair.first;
 			process._limit = _index_pair.second;
@@ -76,11 +73,10 @@ bool MemoryManager::swapIn(process_t process) {
 //		std::cout << "BASE: " << process._base << " LIMIT: " << process._limit
 //				<< std::endl;
 		for (unsigned long i = process._base; i < process._limit; ++i) {
-//			std::cout << process._pid;
 			_mem_array[i] = process._pid;
 		}
 
-		process._burst_time = (rand() % 4900) + 100;
+		process._burst_time = (rand() % (BURST_RANGE - 100)) + 100;
 
 		process._can_swap_in = false;
 		process._can_swap_out = false;
@@ -95,7 +91,7 @@ bool MemoryManager::swapIn(process_t process) {
 
 bool MemoryManager::swapOut(const process_t process) {
 
-	if (isKernelThread(process)) {
+	if (isKernelProcess(process)) {
 		return false;
 	}
 
@@ -113,16 +109,14 @@ bool MemoryManager::swapOut(const process_t process) {
 
 std::pair<long, long> MemoryManager::canFitFirstFit(process_t process) {
 
-	unsigned long _size = process.size();
+	unsigned long _size = process._size;
 
 	for (unsigned long i = 0; i < MEMORY_SIZE; ++i) {
 		if (_mem_array[i] == ' ') {
-//			std::cout << "MEM OBJ: " << _mem_array[i];
 			for (unsigned long p = i; p < MEMORY_SIZE; p++) {
 				if (_mem_array[p] == ' ') {
 
 					if (p == (MEMORY_SIZE - 1)) {
-//						std::cout << "The end has been reached!" << std::endl;
 						return std::make_pair<long, long>(-1L, -1L);
 					} else if ((p - i) == _size) {
 						return std::make_pair<long, long>(i, p);
@@ -255,9 +249,6 @@ bool MemoryManager::hasReadyProcess() {
 }
 
 void MemoryManager::executeCycle() {
-//	std::cout << "RUNNING QUEUE SIZE: " << _running_queue.size() << std::endl;
-//	std::cout << "READY QUEUE SIZE: " << _ready_queue.size() << std::endl;
-
 	++_m_cycle_num;
 
 	for (unsigned long i = 0; i < _running_queue.size(); ++i) {
@@ -273,11 +264,6 @@ void MemoryManager::executeCycle() {
 		if (swapIn(pullNextFromReadyQueue())) {
 			_ready_queue.erase(_ready_queue.begin());
 		} else {
-
-//			std::cout << "Could not fit " << pullNextFromReadyQueue()._pid
-//					<< std::endl;
-//			std::cout << "Size: " << pullNextFromReadyQueue()._size;
-
 			bool proc_swapped = false;
 			for (unsigned long i = 0; i < _running_queue.size(); i++) {
 				process_t& _proc = _running_queue[i];
@@ -288,7 +274,6 @@ void MemoryManager::executeCycle() {
 						_ready_queue.push_back(_running_queue.at(i));
 						_running_queue.erase(_running_queue.begin() + i);
 						proc_swapped = true;
-//						std::cout << "Swapped out: " << i << std::endl;
 					}
 				}
 
@@ -300,18 +285,26 @@ void MemoryManager::executeCycle() {
 		}
 	}
 
+	if(getMemRatio() > MAX_MEM_RATION) {
+
+	}
+
+}
+
+double MemoryManager::getMemRatio() {
+	double val = 0.0;
+
+
+	return val;
 }
 
 bool MemoryManager::hasProcRegistered(char _pid) {
 	bool _inRunQueue = false;
 	bool _inReadyQueue = false;
 
-//	std::cout << "CHECKING PID: " << _pid << std::endl;
-
 	unsigned long i = 0;
 	for (i = 0; i < _running_queue.size(); i++) {
 		if (_pid == _running_queue.at(i)._pid) {
-//			std::cout << _pid << " && " << _running_queue.at(i)._pid << " match!" << std::endl;
 			_inRunQueue = true;
 			break;
 		}
@@ -319,7 +312,6 @@ bool MemoryManager::hasProcRegistered(char _pid) {
 
 	for (i = 0; i < _ready_queue.size(); i++) {
 		if (_pid == _ready_queue.at(i)._pid) {
-//			std::cout << "2: " << _pid << " && " << _ready_queue.at(i)._pid << " match!" << std::endl;
 			_inReadyQueue = true;
 			break;
 		}
@@ -340,13 +332,6 @@ process_t MemoryManager::getLargestProcess() {
 		}
 	}
 
-//	if (_ready_queue.size() > 0) {
-//		for (i = 0; i < _ready_queue.size(); i++) {
-//			proc = (_ready_queue.at(i)._size > proc._size) ?
-//					(_ready_queue.at(i)) : proc;
-//		}
-//	}
-
 	return proc;
 }
 
@@ -361,16 +346,6 @@ process_t MemoryManager::getSmallestProcess() {
 					(_running_queue.at(i)) : proc;
 		}
 	}
-
-//	if (_ready_queue.size() > 0) {
-//		if (proc._size == -1) {
-//			proc = _ready_queue.at(0);
-//		}
-//		for (i = 0; i < _ready_queue.size(); i++) {
-//			proc = (proc._size > _ready_queue.at(i)._size) ?
-//					(_ready_queue.at(i)) : proc;
-//		}
-//	}
 
 	return proc;
 }
@@ -387,6 +362,42 @@ long MemoryManager::getNumberOfFreeBlocks() {
 	return val;
 }
 
+bool MemoryManager::doCompaction() {
+	std::vector<process_t> tmpList;
+	bool result = false;
+	long _start_index = 0;
+	process_t proc;
+
+	int i = 0;
+	for (i = 0; i < _running_queue.size(); i++) {
+		proc = _running_queue.at(i);
+		if (isKernelProcess(proc)) {
+			continue;
+		}
+
+		swapOut(proc);
+	}
+
+	for (i = 0; i < _running_queue.size(); i++) {
+		proc = _running_queue.at(i);
+		if (isKernelProcess(proc)) {
+			continue;
+		}
+
+		for (int k = 0; k < MEMORY_SIZE; k++) {
+			if (_mem_array[k] == ' ') {
+				for (int p = 0; p < proc._size; p++) {
+					_mem_array[k] = proc._pid;
+					k++;
+				}
+				break;
+			}
+		}
+	}
+
+	return result;
+}
+
 int i = 0;
 int _print_state = 0;
 void MemoryManager::printMemMap() {
@@ -400,31 +411,16 @@ void MemoryManager::printMemMap() {
 			if (i > 0) {
 				if (i % 5 == 0) {
 					if (i % 10 == 0) {
-						if(i < 100) {
+						if (i < 100) {
 							std::cout << "        " << i;
 						} else if (i < 1000) {
 							std::cout << "       " << i;
 						} else {
 							std::cout << "      " << i;
 						}
-					} else {
-//					std::cout << " ";
 					}
-				} else {
-//					std::cout << " ";
 				}
 			}
-
-//			if ((i % 10 == 0)) {
-//				std::cout << "\t" << i;
-//			}
-//			else if ((i < 100) && (i % 8 != 0)) {
-//				std::cout << " ";
-//			} else if ((i < 1000) && (i % 7 != 0)) {
-//				std::cout << " ";
-//			} else if ((i < 10000) && (i % 6 != 0)) {
-//				std::cout << " ";
-//			}
 
 			if ((i > 0) && (i % 80 == 0)) {
 				_print_state += 1;
@@ -460,7 +456,7 @@ void MemoryManager::printMemMap() {
 
 			if ((i > 0) && (i % 80 == 0)) {
 				_print_state = 0;
-				std::cout << std::endl;
+				std::cout << "" << std::endl;
 			}
 
 			continue;

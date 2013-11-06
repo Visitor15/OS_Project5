@@ -13,9 +13,6 @@
 #include "memory_manager.h"
 #include "process_manager.h"
 
-static const int MAX_QUANTA = 50000;
-static const int PRINT_INTERVAL = 5000;
-static const int NUM_OF_PROCESSES = 60;
 static int _mem_strategy;
 static MemoryManager _memManager;
 

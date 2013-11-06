@@ -14,8 +14,6 @@
 #include <sstream>
 #include "process_manager.h"
 
-static const long MEMORY_SIZE = 1040;
-
 class MemoryManager {
 public:
 	MemoryManager();
@@ -29,6 +27,7 @@ public:
 	bool swapOut(const process_t process);
 	void addToBackingStore(const process_t process);
 	long getNumberOfFreeBlocks();
+	double getMemRatio();
 	process_t getLargestProcess();
 	process_t getSmallestProcess();
 	void formatDetails();
@@ -38,6 +37,7 @@ public:
 	std::pair<long, long> canFitFirstFit(process_t process);
 	std::pair<long, long> canFitBestFit(process_t process);
 	std::pair<long, long> canFitWorstFit(process_t process);
+	bool doCompaction();
 	bool hasProcRegistered(char _pid);
 	bool hasReadyProcess();
 	void printMemMap();

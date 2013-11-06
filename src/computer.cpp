@@ -17,7 +17,6 @@ void Computer::boot() {
 }
 
 void Computer::init() {
-
 	_memManager.init();
 	_memManager.swapIn(ProcessBuilder::getInstance().generateKernelProcess());
 	beginExecution();
@@ -42,7 +41,7 @@ void Computer::cycle() {
 void Computer::loadJobs() {
 	srand(time(0));
 
-	std::cout << "Choose a memory management strategy" << std::endl;
+	std::cout << "\nChoose a memory management strategy" << std::endl;
 	std::cout << "1. First Fit" << std::endl;
 	std::cout << "2. Best Fit" << std::endl;
 	std::cout << "3. Worst Fit" << std::endl;
@@ -59,7 +58,7 @@ void Computer::loadJobs() {
 			} while (_memManager.hasProcRegistered(_proc._pid));
 		}
 
-		_proc._limit = (unsigned long) ((rand() % 154) + 4);
+		_proc._limit = (unsigned long) ((rand() % (MAX_PROC_SIZE - 4)) + 4);
 		_proc._size = _proc._limit;
 
 		std::cout << "Process: " << _proc._pid << " Generated size: "

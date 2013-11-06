@@ -5,9 +5,13 @@
 #include <time.h>
 #include <vector>
 
+static const long MEMORY_SIZE = 1040;
+static const int MAX_QUANTA = 50000;
 static const long BURST_RANGE = 5000;
-
-
+static const int PRINT_INTERVAL = 5000;
+static const int NUM_OF_PROCESSES = 60;
+static const int MAX_PROC_SIZE = 160;
+static const double MAX_MEM_RATION = 0.65;
 
 enum P_STATE {
 	SLEEPING = 0, RUNNING = 1, WAITING = 2, STOPPED = 3
@@ -40,14 +44,19 @@ struct process_t {
 	}
 
 	process_t() :
-			_pid(' '), _base(0UL), _limit(0UL), _size(0), _burst_time(
-					0UL), _priority(0U), _state(SLEEPING) {
+		_pid(' '),
+		_base(0UL),
+		_limit(0UL),
+		_size(0),
+		_burst_time(0UL),
+		_priority(0U),
+		_state(SLEEPING) {
 		_can_swap_out = false;
 		_can_swap_in = true;
 	}
 };
 
-inline static bool isKernelThread(const process_t proc) {
+inline static bool isKernelProcess(const process_t proc) {
 	return (proc._pid == '@');
 }
 
@@ -77,7 +86,7 @@ public:
 		static ProcessBuilder _instance;
 
 		for (int i = 33; i < 127; i++) {
-			if (i != 64) {
+			if (i != 64 || i != 108 || i != 73) {
 				_pid_list.push_back(i);
 			}
 		}
@@ -102,7 +111,7 @@ public:
 		process_t _p;
 
 		_p._pid = generate_PID();
-		_p._burst_time = (rand() % 4900) + 100;
+		_p._burst_time = (rand() % (BURST_RANGE - 100)) + 100;
 
 		_cached_history.push_back(_p);
 
