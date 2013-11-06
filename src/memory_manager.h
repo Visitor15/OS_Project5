@@ -27,6 +27,7 @@ public:
 	bool swapOut(const process_t process);
 	void addToBackingStore(const process_t process);
 	long getNumberOfFreeBlocks();
+	std::pair<int, int> getMemFreeUsedPair();
 	double getMemRatio();
 	process_t getLargestProcess();
 	process_t getSmallestProcess();

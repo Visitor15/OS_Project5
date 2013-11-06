@@ -285,17 +285,63 @@ void MemoryManager::executeCycle() {
 		}
 	}
 
-	if(getMemRatio() > MAX_MEM_RATION) {
+	double _ratio = getMemRatio();
+	if (_ratio > MAX_MEM_RATION) {
 
+		std::cout << "\tRUNNING COMPACTION - MAX RATIO HIT (" << _ratio << ")"
+				<< std::endl;
+
+		doCompaction();
+		printMemMap();
 	}
 
 }
 
+std::pair<int, int> MemoryManager::getMemFreeUsedPair() {
+	std::pair<int, int> _pair;
+	int _used = 0;
+	int _holes = 0;
+	for (int i = 0; i < MEMORY_SIZE; i++) {
+		if (_mem_array[i] == ' ') {
+			for (int p = i; p < MEMORY_SIZE; p++) {
+				if (p != ' ') {
+					++_holes;
+					i = p;
+					break;
+				}
+			}
+		} else {
+			for (int k = i; k < MEMORY_SIZE; k++) {
+				if (k == ' ') {
+					++_used;
+					i = k;
+					break;
+				}
+			}
+		}
+	}
+
+	_pair = std::make_pair<int, int>(_holes, _used);
+
+	return _pair;
+}
+
 double MemoryManager::getMemRatio() {
-	double val = 0.0;
+	std::pair<int, int> freeUsedPair = getMemFreeUsedPair();
+	double n1 = (double) freeUsedPair.first;
+	double n2 = (double) freeUsedPair.second;
 
+	double gdc;
+	while (n2 != 0) {
+		int mod = (int) n1 % (int) n2;
+		n1 = n2;
+		n2 = mod;
+	}
+	gdc = n1;
+	double _free = (double) freeUsedPair.first / gdc;
+	double _used = (double) freeUsedPair.second / gdc;
 
-	return val;
+	return _used / _free;
 }
 
 bool MemoryManager::hasProcRegistered(char _pid) {
@@ -564,6 +610,13 @@ void MemoryManager::formatDetails() {
 	tmp.append(" (");
 	tmp += proc._pid;
 	tmp.append(")");
+	val.append(tmp);
+
+	val.append("\tBL/PROCS RATIO:");
+	_stream.clear();
+	_stream << getMemRatio();
+	tmp.clear();
+	_stream >> tmp;
 	val.append(tmp);
 
 	std::cout << val << std::endl;
