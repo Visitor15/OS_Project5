@@ -18,7 +18,7 @@ void Computer::boot() {
 
 void Computer::init() {
 	_memManager.init();
-	_memManager.swapIn(ProcessBuilder::getInstance().generateKernelProcess());
+	_memManager.swapIn(ProcessBuilder::getInstance()->generateKernelProcess());
 	beginExecution();
 }
 
@@ -48,13 +48,12 @@ void Computer::loadJobs() {
 	std::cout << "\nChoice: ";
 	std::cin >> _mem_strategy;
 
-	ProcessBuilder _instance = ProcessBuilder::getInstance();
 	for (int i = 0; i < NUM_OF_PROCESSES - 1; ++i) {
-		process_t _proc = _instance.generateProcess();
+		process_t _proc = ProcessBuilder::getInstance()->generateProcess();
 
 		if (_memManager.hasProcRegistered(_proc._pid)) {
 			do {
-				_proc = _instance.generateProcess();
+				_proc = ProcessBuilder::getInstance()->generateProcess();
 			} while (_memManager.hasProcRegistered(_proc._pid));
 		}
 

@@ -12,7 +12,7 @@ memory_manager.o : memory_manager.cpp memory_manager.h
 process_builder.o : process_builder.cpp process_builder.h process_manager.h
 	g++ -Wall -c -g process_builder.cpp
 
-main.o : main.cpp
+main.o : main.cpp process_manager.h
 	g++ -Wall -c -g main.cpp
 
 clean :

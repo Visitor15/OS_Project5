@@ -5,6 +5,9 @@
  *      Author: visitor15
  */
 
+#include <stdlib.h>
+#include <time.h>
+#include <vector>
 
 #include "computer.h"
 
