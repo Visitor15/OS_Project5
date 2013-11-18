@@ -13,6 +13,8 @@
 #include <iostream>
 #include <sstream>
 #include "process_builder.h"
+#include "backing_store.h"
+#include "frame_table.h"
 
 class MemoryManager {
 public:
@@ -42,10 +44,16 @@ public:
 	bool hasProcRegistered(char _pid);
 	bool hasReadyProcess();
 	void printMemMap();
+	void loadSegmentInMemory(struct segment_t seg);
+	bool loadPage(struct mem_page_t* page);
+	bool touchProcess(struct process_t proc);
+	bool touchSegment(struct segment_t seg);
 
 private:
-	long _m_cycle_num;
+	BackingStore 	_backing_store;
+	FrameTable		f_table;
 
+	long _m_cycle_num;
 	char _mem_array[MEMORY_SIZE];
 
 	std::vector<struct process_t> _running_queue;

@@ -7,8 +7,12 @@
 
 #include "process_builder.h"
 
-ProcessBuilder::ProcessBuilder() {};
-ProcessBuilder::ProcessBuilder(ProcessBuilder const&) {};
+ProcessBuilder::ProcessBuilder() {
+}
+;
+ProcessBuilder::ProcessBuilder(ProcessBuilder const&) {
+}
+;
 
 ProcessBuilder* ProcessBuilder::getInstance() {
 	if (m_pInstance == NULL) {
@@ -39,7 +43,35 @@ char ProcessBuilder::generate_PID() {
 struct process_t ProcessBuilder::generateProcess() {
 	process_t _p;
 
+	char id[2];
+	mem_page_t page_list[CODE_SEG_PAGE_SIZE];
 	_p._pid = generate_PID();
+
+	int i = 0;
+	for (i = 0; i < CODE_SEG_PAGE_SIZE; i++) {
+		page_list[i] = mem_page_t();
+	}
+	id[0] = _p._pid;
+	id[1] = '0';
+	_p._seg_code = segment_t(id, CODE_SEG_PAGE_SIZE, page_list, 0, 0);
+
+	delete page_list;
+	for (i = 0; i < STACK_SEG_PAGE_SIZE; i++) {
+		page_list[i] = mem_page_t();
+	}
+	id[0] = _p._pid;
+	id[1] = '1';
+	_p._seg_stack = segment_t(id, STACK_SEG_PAGE_SIZE, page_list, 0, 0);
+
+	delete page_list;
+	for (i = 0; i < HEAP_SEG_PAGE_SIZE; i++) {
+		page_list[i] = mem_page_t();
+	}
+	id[0] = _p._pid;
+	id[1] = '2';
+	_p._seg_heap = segment_t(id, HEAP_SEG_PAGE_SIZE, page_list, 0, 0);
+
+	_p._segs_routines = generateProcRoutines(_p._pid);
 	_p._burst_time = (rand() % (BURST_RANGE - 100)) + 100;
 
 	m_pInstance->_cached_history.push_back(_p);
@@ -47,15 +79,51 @@ struct process_t ProcessBuilder::generateProcess() {
 	return _p;
 }
 
+segment_t* ProcessBuilder::generateProcRoutines(const char pid) {
+	mem_page_t page_list[SUB_ROUTINE_SEG_PAGE_SIZE];
+	int routine_count = (rand() % NUM_OF_PROC_SUBROUTINES) + 1;
+	segment_t subroutines[routine_count];
+	char num;
+	for (int i = 0; i < routine_count; i++) {
+		std::ostringstream oss;
+		oss << (i + PROC_SUBROUTINE_NUM_OFFSET);
+		char generated_id[2] = { pid, *(char*) oss.str().c_str() };
+
+		delete page_list;
+		for (i = 0; i < SUB_ROUTINE_SEG_PAGE_SIZE; i++) {
+			page_list[i] = mem_page_t();
+		}
+
+		subroutines[i] = segment_t(generated_id, SUB_ROUTINE_SEG_PAGE_SIZE,
+				page_list, 0, 0);
+	}
+
+	return subroutines;
+}
+
 struct process_t ProcessBuilder::generateKernelProcess() {
+	mem_page_t page_list[KERNEL_SIZE_IN_FRAMES];
 	process_t _k_proc;
 
 	_k_proc._pid = '@';
-	_k_proc._base = 0;
-	_k_proc._limit = 120;
-	_k_proc._size = 120;
+
+	delete page_list;
+	for (int i = 0; i < KERNEL_SIZE_IN_FRAMES; i++) {
+		page_list[i] = mem_page_t();
+	}
+
+	char id[2];
+	id[0] = _k_proc._pid;
+	id[1] = '0';
+	_k_proc._seg_code = segment_t(id, KERNEL_SIZE_IN_FRAMES, page_list, 0, 0);
 	_k_proc._can_swap_out = false;
 	_k_proc._can_swap_in = true;
+
+	if (USE_MEM_STRATEGY_BLOCKS) {
+		_k_proc._base = 0;
+		_k_proc._limit = KERNEL_SIZE_IN_BLOCKS;
+		_k_proc._size = KERNEL_SIZE_IN_BLOCKS;
+	}
 
 	return _k_proc;
 }

@@ -626,3 +626,86 @@ void MemoryManager::formatDetails() {
 			<< std::endl;
 }
 
+void MemoryManager::loadSegmentInMemory(struct segment_t seg) {
+}
+
+bool MemoryManager::loadPage(struct mem_page_t* page) {
+
+	page->p_frame = f_table.requestFreeFrame();
+
+	return true;
+}
+
+bool MemoryManager::touchProcess(struct process_t proc) {
+
+	touchSegment(proc._seg_code);
+	touchSegment(proc._seg_heap);
+	touchSegment(proc._seg_stack);
+	touchSegment(proc._segs_routines[(rand() % proc._num_routines)]);
+
+	return true;
+}
+
+bool MemoryManager::touchSegment(struct segment_t seg) {
+	try {
+		return seg.touch();
+	} catch (PageFaultException &e) {
+		loadPage(e.mem_page);
+		touchSegment(seg);
+	}
+
+	return false;
+}
+
+/*************************************************
+ *	CLASS	BackingStore
+ *************************************************/
+BackingStore::BackingStore() {
+
+}
+
+struct mem_page_t* BackingStore::requestFreePage() {
+	return requestPageAt(0);
+}
+
+struct mem_page_t* BackingStore::requestPageAt(const unsigned int index) {
+	return &_backing_store[index];
+}
+
+void BackingStore::clearPageAt(const unsigned int index) {
+	_backing_store[index] = mem_page_t();
+}
+
+int BackingStore::getNumOfUniqueProcsInBackingStore() {
+	return BACKING_STORE_PAGE_COUNT;
+}
+
+int BackingStore::getFreePageCount() {
+	return BACKING_STORE_PAGE_COUNT;
+}
+
+/*************************************************
+ *	CLASS	FrameTable
+ *************************************************/
+FrameTable::FrameTable() {
+
+}
+
+struct mem_frame_t* FrameTable::requestFreeFrame() {
+
+	int count = (sizeof(_frame_table) / sizeof(mem_frame_t));
+
+	for(int i = 0; i < count ; i++) {
+		if(!_frame_table[i]._active) {
+			return &FrameTable::_frame_table[i];
+		}
+	}
+
+//	int _index;
+//	do {
+//		_index = (rand() % count);
+//	} while(isKernelProcess(*_frame_table[_index].proc));
+
+	return &_frame_table[0];
+}
+
