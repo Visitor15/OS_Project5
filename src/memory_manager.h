@@ -12,6 +12,7 @@
 #include <string.h>
 #include <iostream>
 #include <sstream>
+#include <cstring>
 #include "process_builder.h"
 #include "backing_store.h"
 #include "frame_table.h"
@@ -20,6 +21,9 @@ class MemoryManager {
 public:
 	MemoryManager();
 	~MemoryManager();
+
+
+	std::vector<struct process_t> _running_queue;
 
 	int MEM_STRATEGY;
 
@@ -46,17 +50,21 @@ public:
 	void printMemMap();
 	void loadSegmentInMemory(struct segment_t seg);
 	bool loadPage(struct mem_page_t* page);
-	bool touchProcess(struct process_t proc);
-	bool touchSegment(struct segment_t seg);
+	bool touchProcess(struct process_t* proc);
+	bool touchSegment(struct segment_t* seg);
+	bool loadKernelProcessInMemory(struct process_t proc);
+	void executeCycleNonContigious();
 
 private:
-	BackingStore 	_backing_store;
+	BackingStore 	back_store;
 	FrameTable		f_table;
 
 	long _m_cycle_num;
 	char _mem_array[MEMORY_SIZE];
 
-	std::vector<struct process_t> _running_queue;
+	mem_frame_t _MAIN_MEMORY[MEM_SIZE_IN_FRAMES];
+
+
 	std::vector<struct process_t> _ready_queue;
 	std::vector<struct process_t> _back_store;
 };

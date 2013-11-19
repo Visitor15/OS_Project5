@@ -18,8 +18,11 @@ void Computer::boot() {
 
 void Computer::init() {
 	_memManager.init();
-	_memManager.swapIn(ProcessBuilder::getInstance()->generateKernelProcess());
-	beginExecution();
+	_memManager.loadKernelProcessInMemory(ProcessBuilder::getInstance()->generateKernelProcess());
+	_memManager.touchSegment(&_memManager._running_queue[0]._seg_code);
+//	_memManager.addToReadyQueue(ProcessBuilder::getInstance()->generateKernelProcess());
+//	_memManager.swapIn(ProcessBuilder::getInstance()->generateKernelProcess());
+//	beginExecution();
 }
 
 void Computer::beginExecution() {

@@ -18,9 +18,13 @@ private:
 
 public:
 	FrameTable();
+
+	void initMemFrames();
+
 	mem_frame_t* requestFreeFrame();
 	mem_frame_t* requestFrameAt(const unsigned int index);
 
+	bool writeDataToFrame(const char* data);
 	bool clearFrameAt(const unsigned int index);
 };
 

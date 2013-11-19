@@ -12,8 +12,10 @@
 #include <time.h>
 #include <vector>
 #include <sstream>
+#include <memory.h>
 #include "process_manager.h"
 #include "page_fault_exception.h"
+#include "memory_full_exception.h"
 
 /*
  * 	STRUCT
@@ -23,19 +25,21 @@ private:
 	unsigned long _size;
 
 public:
-//	process_t* proc;
 
-	char _id;
+	char _id[2];
 	unsigned long _base;
 	unsigned long _limit;
+
+	int _index;
 
 	bool _active;
 
 	mem_frame_t() {
-//		proc = 0;
-		_id = ' ';
+		_id[0] = ' ';
+		_id[1] = ' ';
 		_base = 0;
 		_limit = 0;
+		_index = -1;
 		_size = (sizeof(char) * PAGE_SIZE_IN_BYTES);
 		_active = false;
 	}
@@ -49,6 +53,7 @@ private:
 	unsigned long _size;
 
 public:
+	char _id[2];
 	int _index;
 
 	bool _is_loaded;
@@ -72,6 +77,8 @@ typedef struct segment_t {
 	unsigned long _limit;
 	int _num_pages;
 
+	std::vector<mem_page_t> seg_pages;
+
 	mem_page_t* p_pages;
 
 	bool _valid;
@@ -82,8 +89,8 @@ typedef struct segment_t {
 		_base = 0;
 		_limit = 0;
 		_num_pages = 0;
-		p_pages = 0;
-		_valid = true;
+		p_pages = NULL;
+		_valid = false;
 	}
 
 	segment_t(char ID[], int NUM_PAGES, mem_page_t PAGES[], long REG_BASE,
@@ -91,17 +98,24 @@ typedef struct segment_t {
 		_id[0] = ID[0];
 		_id[1] = ID[1];
 		_num_pages = NUM_PAGES;
-		p_pages = PAGES;
+//		if (PAGES != NULL) {
+//			memcpy(p_pages, PAGES, NUM_PAGES);
+//		}
+		p_pages = NULL;
 		_base = REG_BASE;
 		_limit = REG_LIMIT;
 		_valid = false;
 	}
 
 	bool touch() {
-		for (int i = 0; i < _num_pages; i++) {
-			if (!p_pages[i]._is_loaded) {
-				throw PageFaultException(&p_pages[i]);
+		if (_valid || seg_pages.size() != 0) {
+			for (int i = 0; i < seg_pages.size(); i++) {
+				if (!seg_pages[i]._is_loaded) {
+					throw PageFaultException(&seg_pages[i]);
+				}
 			}
+		} else {
+			throw PageFaultException(NULL);
 		}
 
 		return true;
@@ -117,15 +131,15 @@ typedef struct process_t {
 	segment_t _seg_code;
 	segment_t _seg_stack;
 	segment_t _seg_heap;
-	segment_t* _segs_routines;
+	segment_t* _seg_routines;
 
-	unsigned int _num_routines;
-	unsigned int _burst_time;
-	unsigned int _priority;
+	int _num_routines;
+	int _burst_time;
+	int _priority;
 
-	unsigned long _size;
-	unsigned long _base;
-	unsigned long _limit;
+	long _size;
+	long _base;
+	long _limit;
 
 	bool _can_swap_out;
 	bool _can_swap_in;
@@ -138,7 +152,7 @@ typedef struct process_t {
 
 	process_t() {
 		_pid = ' ';
-		_segs_routines = 0;
+		_seg_routines = 0;
 		_num_routines = 0;
 		_burst_time = 0;
 		_priority = 0;
@@ -178,7 +192,7 @@ public:
 
 	process_t generateProcess();
 
-	segment_t* generateProcRoutines(const char pid);
+	void generateProcRoutines(segment_t* list, int length, const char pid);
 
 	struct process_t generateKernelProcess();
 

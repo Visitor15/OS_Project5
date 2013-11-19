@@ -18,7 +18,14 @@ MemoryManager::~MemoryManager() {
 
 void MemoryManager::init() {
 	std::cout << "Memory booting..." << std::endl;
-	std::fill(_mem_array, _mem_array + MEMORY_SIZE, ' ');
+
+	f_table.initMemFrames();
+	back_store.initMemFrames();
+
+//	for(int i = 0; i < MEMORY_SIZE; i++) {
+//		_mem_array[i] = ' ';
+//	}
+//	std::fill(_mem_array, _mem_array + MEMORY_SIZE, ' ');
 }
 
 bool MemoryManager::swapIn(process_t process) {
@@ -72,7 +79,7 @@ bool MemoryManager::swapIn(process_t process) {
 //		std::cout << "Size: " << (process._limit - process._base) << std::endl;
 //		std::cout << "BASE: " << process._base << " LIMIT: " << process._limit
 //				<< std::endl;
-		for (unsigned long i = process._base; i < process._limit; ++i) {
+		for (long i = process._base; i < process._limit; ++i) {
 			_mem_array[i] = process._pid;
 		}
 
@@ -626,35 +633,63 @@ void MemoryManager::formatDetails() {
 			<< std::endl;
 }
 
+void MemoryManager::executeCycleNonContigious() {
+	if (_running_queue.size() > 0) {
+		touchProcess(&(_running_queue.at((rand() % _running_queue.size()))));
+	} else {
+		std::cout << "No processes found in running queue!" << std::endl;
+	}
+}
+
+bool MemoryManager::loadKernelProcessInMemory(struct process_t proc) {
+
+	_running_queue.push_back(proc);
+	touchSegment(&proc._seg_code);
+
+	return false;
+}
+
 void MemoryManager::loadSegmentInMemory(struct segment_t seg) {
+
 }
 
 bool MemoryManager::loadPage(struct mem_page_t* page) {
-
 	page->p_frame = f_table.requestFreeFrame();
 
-	return true;
-}
+	std::memcpy(page->p_frame->_id, page->_id, 2);
 
-bool MemoryManager::touchProcess(struct process_t proc) {
-
-	touchSegment(proc._seg_code);
-	touchSegment(proc._seg_heap);
-	touchSegment(proc._seg_stack);
-	touchSegment(proc._segs_routines[(rand() % proc._num_routines)]);
+//	page->p_frame->_id = page->_id;
+	page->_is_loaded = true;
 
 	return true;
 }
 
-bool MemoryManager::touchSegment(struct segment_t seg) {
+bool MemoryManager::touchProcess(struct process_t* proc) {
+
+	touchSegment(&proc->_seg_code);
+	touchSegment(&proc->_seg_heap);
+	touchSegment(&proc->_seg_stack);
+	touchSegment(&proc->_seg_routines[(rand() % proc->_num_routines)]);
+
+	return true;
+}
+
+bool MemoryManager::touchSegment(struct segment_t* seg) {
 	try {
-		return seg.touch();
+		return seg->touch();
 	} catch (PageFaultException &e) {
-		loadPage(e.mem_page);
+		if (e.mem_page == NULL) {
+			for (int i = 0; i < seg->_num_pages; i++) {
+				seg->seg_pages.push_back(*back_store.requestFreePage());
+				loadPage(&seg->seg_pages[i]);
+			}
+		} else {
+			loadPage(e.mem_page);
+		}
 		touchSegment(seg);
 	}
 
-	return false;
+	return true;
 }
 
 /*************************************************
@@ -664,8 +699,23 @@ BackingStore::BackingStore() {
 
 }
 
+void BackingStore::initMemFrames() {
+	for (int i = 0; i < MEMORY_FRAME_COUNT; i++) {
+		BackingStore::_backing_store[i] = mem_page_t();
+		BackingStore::_backing_store[i].p_frame;
+	}
+}
+
 struct mem_page_t* BackingStore::requestFreePage() {
-	return requestPageAt(0);
+	std::cout << "Request page" << std::endl;
+
+	for (int i = 0; i < BACKING_STORE_PAGE_COUNT; i++) {
+		if (!(_backing_store[i]._is_loaded)) {
+			return &_backing_store[i];
+		}
+	}
+
+	throw MemoryFullException();
 }
 
 struct mem_page_t* BackingStore::requestPageAt(const unsigned int index) {
@@ -691,20 +741,26 @@ FrameTable::FrameTable() {
 
 }
 
+void FrameTable::initMemFrames() {
+	for (int i = 0; i < MEMORY_FRAME_COUNT; i++) {
+		FrameTable::_frame_table[i] = mem_frame_t();
+	}
+}
+
 struct mem_frame_t* FrameTable::requestFreeFrame() {
+	std::cout << "Request frame" << std::endl;
 
-	int count = (sizeof(_frame_table) / sizeof(mem_frame_t));
-
-	for(int i = 0; i < count ; i++) {
-		if(!_frame_table[i]._active) {
+	for (int i = 0; i < MEMORY_FRAME_COUNT; i++) {
+		if (!_frame_table[i]._active) {
+			FrameTable::_frame_table[i]._active = true;
 			return &FrameTable::_frame_table[i];
 		}
 	}
 
-//	int _index;
-//	do {
-//		_index = (rand() % count);
-//	} while(isKernelProcess(*_frame_table[_index].proc));
+	int _index;
+	do {
+		_index = (rand() % MEMORY_FRAME_COUNT);
+	} while (std::strstr((char*) _frame_table[_index]._id, "@") != NULL);
 
 	return &_frame_table[0];
 }

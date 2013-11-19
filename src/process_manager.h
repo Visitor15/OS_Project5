@@ -2,6 +2,7 @@
 #define PROCESS_MANAGER_H_
 
 static const long 	MEMORY_SIZE = 			1040;
+static const int	MEM_SIZE_IN_FRAMES =	280;
 static const long 	FRAME_SIZE_IN_BYTES = 	4096;
 static const long	PAGE_SIZE_IN_BYTES =	4096;
 static const int 	MAX_QUANTA = 			50000;
@@ -20,6 +21,7 @@ static const int	CODE_SEG_PAGE_SIZE = 2;
 static const int	STACK_SEG_PAGE_SIZE = 3;
 static const int	HEAP_SEG_PAGE_SIZE = 5;
 static const int	SUB_ROUTINE_SEG_PAGE_SIZE = 2;
+static const int	MAX_PROC_PAGE_SIZE = 20;
 
 static bool USE_MEM_STRATEGY_BLOCKS = false;
 
