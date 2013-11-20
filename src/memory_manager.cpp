@@ -251,6 +251,13 @@ struct process_t MemoryManager::pullNextFromReadyQueue() {
 	return _ready_queue.at(0);
 }
 
+void MemoryManager::touchNextReadyProc() {
+	if(touchProcess(&_ready_queue.at(0))) {
+		_running_queue.push_back(_ready_queue.at(0));
+		_ready_queue.erase(_ready_queue.begin());
+	}
+}
+
 bool MemoryManager::hasReadyProcess() {
 	return _ready_queue.size() > 0;
 }
@@ -654,12 +661,11 @@ void MemoryManager::loadSegmentInMemory(struct segment_t seg) {
 }
 
 bool MemoryManager::loadPage(struct mem_page_t* page) {
-	page->p_frame = f_table.requestFreeFrame();
 
-	std::memcpy(page->p_frame->_id, page->_id, 2);
+	(*page).p_frame = *f_table.requestFreeFrame();
 
-//	page->p_frame->_id = page->_id;
-	page->_is_loaded = true;
+	std::memcpy(page->p_frame._id, page->_id, 2);
+	(*page)._index = (*page).p_frame._index;
 
 	return true;
 }
@@ -669,25 +675,25 @@ bool MemoryManager::touchProcess(struct process_t* proc) {
 	touchSegment(&proc->_seg_code);
 	touchSegment(&proc->_seg_heap);
 	touchSegment(&proc->_seg_stack);
-	touchSegment(&proc->_seg_routines[(rand() % proc->_num_routines)]);
+	touchSegment(&proc->_seg_routines.at((rand() % proc->_num_routines)));
 
 	return true;
 }
 
 bool MemoryManager::touchSegment(struct segment_t* seg) {
-	try {
-		return seg->touch();
-	} catch (PageFaultException &e) {
-		if (e.mem_page == NULL) {
-			for (int i = 0; i < seg->_num_pages; i++) {
-				seg->seg_pages.push_back(*back_store.requestFreePage());
-				loadPage(&seg->seg_pages[i]);
-			}
-		} else {
-			loadPage(e.mem_page);
+
+	bool page_fault;
+
+	do {
+		try {
+			page_fault = false;
+			seg->touch();
+		} catch (PageFaultException &e) {
+			seg->seg_pages.at(e._index) = *back_store.requestFreePage();
+			loadPage(&seg->seg_pages.at(e._index));
+			page_fault = true;
 		}
-		touchSegment(seg);
-	}
+	} while (page_fault);
 
 	return true;
 }
@@ -701,8 +707,7 @@ BackingStore::BackingStore() {
 
 void BackingStore::initMemFrames() {
 	for (int i = 0; i < MEMORY_FRAME_COUNT; i++) {
-		BackingStore::_backing_store[i] = mem_page_t();
-		BackingStore::_backing_store[i].p_frame;
+		BackingStore::_backing_store[i] = mem_page_t(i);
 	}
 }
 
@@ -710,7 +715,7 @@ struct mem_page_t* BackingStore::requestFreePage() {
 	std::cout << "Request page" << std::endl;
 
 	for (int i = 0; i < BACKING_STORE_PAGE_COUNT; i++) {
-		if (!(_backing_store[i]._is_loaded)) {
+		if (_backing_store[i]._index == -1) {
 			return &_backing_store[i];
 		}
 	}
@@ -743,7 +748,7 @@ FrameTable::FrameTable() {
 
 void FrameTable::initMemFrames() {
 	for (int i = 0; i < MEMORY_FRAME_COUNT; i++) {
-		FrameTable::_frame_table[i] = mem_frame_t();
+		FrameTable::_frame_table[i] = mem_frame_t(i);
 	}
 }
 

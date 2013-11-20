@@ -17,10 +17,18 @@ void Computer::boot() {
 }
 
 void Computer::init() {
+	srand(time(0));
 	_memManager.init();
 	_memManager.loadKernelProcessInMemory(ProcessBuilder::getInstance()->generateKernelProcess());
 	_memManager.touchSegment(&_memManager._running_queue[0]._seg_code);
-//	_memManager.addToReadyQueue(ProcessBuilder::getInstance()->generateKernelProcess());
+
+	std::cout << "ADDING PROCESS" << std::endl;
+
+	_memManager.addToReadyQueue(ProcessBuilder::getInstance()->generateProcess());
+	_memManager.addToReadyQueue(ProcessBuilder::getInstance()->generateProcess());
+
+	_memManager.touchNextReadyProc();
+
 //	_memManager.swapIn(ProcessBuilder::getInstance()->generateKernelProcess());
 //	beginExecution();
 }
@@ -42,7 +50,7 @@ void Computer::cycle() {
 }
 
 void Computer::loadJobs() {
-	srand(time(0));
+//	srand(time(0));
 
 	std::cout << "\nChoose a memory management strategy" << std::endl;
 	std::cout << "1. First Fit" << std::endl;

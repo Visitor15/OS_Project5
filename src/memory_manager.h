@@ -41,6 +41,7 @@ public:
 	struct process_t pullNextFromBackStore();
 	void addToReadyQueue(const process_t process);
 	struct process_t pullNextFromReadyQueue();
+	void touchNextReadyProc();
 	std::pair<long, long> canFitFirstFit(process_t process);
 	std::pair<long, long> canFitBestFit(process_t process);
 	std::pair<long, long> canFitWorstFit(process_t process);

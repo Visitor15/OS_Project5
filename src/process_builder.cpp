@@ -44,32 +44,20 @@ struct process_t ProcessBuilder::generateProcess() {
 	process_t _p;
 
 	char id[2];
-	mem_page_t page_list[CODE_SEG_PAGE_SIZE];
 	_p._pid = generate_PID();
 
 	int i = 0;
-	for (i = 0; i < CODE_SEG_PAGE_SIZE; i++) {
-		page_list[i] = mem_page_t();
-	}
 	id[0] = _p._pid;
 	id[1] = '0';
-	_p._seg_code = segment_t(id, CODE_SEG_PAGE_SIZE, page_list, 0, 0);
+	_p._seg_code = segment_t(id, CODE_SEG_PAGE_SIZE, 0, 0);
 
-	delete page_list;
-	for (i = 0; i < STACK_SEG_PAGE_SIZE; i++) {
-		page_list[i] = mem_page_t();
-	}
 	id[0] = _p._pid;
 	id[1] = '1';
-	_p._seg_stack = segment_t(id, STACK_SEG_PAGE_SIZE, page_list, 0, 0);
+	_p._seg_stack = segment_t(id, STACK_SEG_PAGE_SIZE, 0, 0);
 
-	delete page_list;
-	for (i = 0; i < HEAP_SEG_PAGE_SIZE; i++) {
-		page_list[i] = mem_page_t();
-	}
 	id[0] = _p._pid;
 	id[1] = '2';
-	_p._seg_heap = segment_t(id, HEAP_SEG_PAGE_SIZE, page_list, 0, 0);
+	_p._seg_heap = segment_t(id, HEAP_SEG_PAGE_SIZE, 0, 0);
 
 
 	int routine_count = (rand() % NUM_OF_PROC_SUBROUTINES) + 1;
@@ -78,10 +66,12 @@ struct process_t ProcessBuilder::generateProcess() {
 
 	m_pInstance->_cached_history.push_back(_p);
 
+	std::cout << "GENERATED PROC: " + _p._pid << std::endl;
+
 	return _p;
 }
 
-void ProcessBuilder::generateProcRoutines(segment_t* list, int count, const char pid) {
+void ProcessBuilder::generateProcRoutines(std::vector<segment_t> &list, int count, const char pid) {
 	mem_page_t page_list[SUB_ROUTINE_SEG_PAGE_SIZE];
 	for (int i = 0; i < count; i++) {
 		std::ostringstream oss;
@@ -92,8 +82,7 @@ void ProcessBuilder::generateProcRoutines(segment_t* list, int count, const char
 			page_list[i] = mem_page_t();
 		}
 
-		list[i] = segment_t(generated_id, SUB_ROUTINE_SEG_PAGE_SIZE,
-				page_list, 0, 0);
+		list.push_back(segment_t(generated_id, SUB_ROUTINE_SEG_PAGE_SIZE, 0, 0));
 	}
 }
 
@@ -110,7 +99,7 @@ struct process_t ProcessBuilder::generateKernelProcess() {
 	char id[2];
 	id[0] = _k_proc._pid;
 	id[1] = '0';
-	_k_proc._seg_code = segment_t(id, KERNEL_SIZE_IN_FRAMES, NULL, 0, 0);
+	_k_proc._seg_code = segment_t(id, KERNEL_SIZE_IN_FRAMES, 0, 0);
 	_k_proc._can_swap_out = false;
 	_k_proc._can_swap_in = true;
 

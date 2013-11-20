@@ -12,6 +12,7 @@
 #include <time.h>
 #include <vector>
 #include <sstream>
+#include <iostream>
 #include <memory.h>
 #include "process_manager.h"
 #include "page_fault_exception.h"
@@ -43,6 +44,17 @@ public:
 		_size = (sizeof(char) * PAGE_SIZE_IN_BYTES);
 		_active = false;
 	}
+
+	mem_frame_t(int index) {
+		_id[0] = ' ';
+		_id[1] = ' ';
+		_base = 0;
+		_limit = 0;
+		_index = index;
+		_size = (sizeof(char) * PAGE_SIZE_IN_BYTES);
+		_active = false;
+	}
+
 } _frame;
 
 /*
@@ -56,16 +68,20 @@ public:
 	char _id[2];
 	int _index;
 
-	bool _is_loaded;
-
-	mem_frame_t* p_frame;
+	mem_frame_t p_frame;
 
 	mem_page_t() {
 		_index = -1;
 		_size = (sizeof(char) * FRAME_SIZE_IN_BYTES);
-		_is_loaded = false;
-		p_frame = 0;
+		p_frame = mem_frame_t();
 	}
+
+	mem_page_t(int index) {
+		_index = index;
+		_size = (sizeof(char) * FRAME_SIZE_IN_BYTES);
+		p_frame = mem_frame_t();
+	}
+
 } _page;
 
 /*
@@ -79,8 +95,6 @@ typedef struct segment_t {
 
 	std::vector<mem_page_t> seg_pages;
 
-	mem_page_t* p_pages;
-
 	bool _valid;
 
 	segment_t() {
@@ -89,36 +103,36 @@ typedef struct segment_t {
 		_base = 0;
 		_limit = 0;
 		_num_pages = 0;
-		p_pages = NULL;
 		_valid = false;
 	}
 
-	segment_t(char ID[], int NUM_PAGES, mem_page_t PAGES[], long REG_BASE,
-			long REG_LIMIT) {
+	segment_t(char ID[], int NUM_PAGES, long REG_BASE, long REG_LIMIT) {
 		_id[0] = ID[0];
 		_id[1] = ID[1];
 		_num_pages = NUM_PAGES;
-//		if (PAGES != NULL) {
-//			memcpy(p_pages, PAGES, NUM_PAGES);
-//		}
-		p_pages = NULL;
+
+		seg_pages.clear();
+		for (int i = 0; i < NUM_PAGES; i++) {
+			seg_pages.push_back(mem_page_t(i));
+		}
+
 		_base = REG_BASE;
 		_limit = REG_LIMIT;
 		_valid = false;
 	}
 
 	bool touch() {
-		if (_valid || seg_pages.size() != 0) {
-			for (int i = 0; i < seg_pages.size(); i++) {
-				if (!seg_pages[i]._is_loaded) {
-					throw PageFaultException(&seg_pages[i]);
-				}
+		for (int i = seg_pages.size() - 1; i > -1; i--) {
+			if (seg_pages.at(i)._index != seg_pages.at(i).p_frame._index) {
+				throw PageFaultException(i);
 			}
-		} else {
-			throw PageFaultException(NULL);
 		}
 
-		return true;
+		_valid = true;
+
+		std::cout << "TOUCHED " << *this->_id << std::endl;
+
+		return _valid;
 	}
 } _segment;
 
@@ -131,7 +145,7 @@ typedef struct process_t {
 	segment_t _seg_code;
 	segment_t _seg_stack;
 	segment_t _seg_heap;
-	segment_t* _seg_routines;
+	std::vector<struct segment_t> _seg_routines;
 
 	int _num_routines;
 	int _burst_time;
@@ -152,7 +166,6 @@ typedef struct process_t {
 
 	process_t() {
 		_pid = ' ';
-		_seg_routines = 0;
 		_num_routines = 0;
 		_burst_time = 0;
 		_priority = 0;
@@ -192,7 +205,7 @@ public:
 
 	process_t generateProcess();
 
-	void generateProcRoutines(segment_t* list, int length, const char pid);
+	void generateProcRoutines(std::vector<segment_t> &list, int length, const char pid);
 
 	struct process_t generateKernelProcess();
 

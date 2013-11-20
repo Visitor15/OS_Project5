@@ -12,9 +12,9 @@
 
 class PageFaultException: public std::exception {
 public:
-	struct mem_page_t* mem_page;
-	PageFaultException(struct mem_page_t* page) {
-		mem_page = page;
+	int _index = -1;
+	PageFaultException(int index) {
+		_index = index;
 	}
 
 	virtual const char* what() const throw () {
