@@ -252,9 +252,11 @@ struct process_t MemoryManager::pullNextFromReadyQueue() {
 }
 
 void MemoryManager::touchNextReadyProc() {
-	if (touchProcess(&_ready_queue.at(0))) {
-		_running_queue.push_back(_ready_queue.at(0));
-		_ready_queue.erase(_ready_queue.begin());
+	if (_ready_queue.size() > 0) {
+		if (touchProcess(&_ready_queue.at(0))) {
+			_running_queue.push_back(_ready_queue.at(0));
+			_ready_queue.erase(_ready_queue.begin());
+		}
 	}
 }
 
@@ -662,10 +664,15 @@ void MemoryManager::loadSegmentInMemory(struct segment_t seg) {
 
 bool MemoryManager::loadPage(struct mem_page_t* page) {
 
-	(*page).p_frame = *f_table.requestFreeFrame();
+	mem_frame_t &frame = *f_table.requestFreeFrame();
+
+	(*page).p_frame = frame;
 
 	std::memcpy(page->p_frame._id, page->_id, 2);
+	std::memcpy(frame._id, page->_id, 2);
 	(*page)._index = (*page).p_frame._index;
+
+	std::cout << "SWAPPING IN - " << page->_index << " : " << page->_id << std::endl;
 
 	return true;
 }
@@ -680,7 +687,7 @@ bool MemoryManager::touchProcess(struct process_t* proc) {
 		int index = rand() % proc->_num_routines;
 		touchSegment(&proc->_seg_routines.at(index));
 	} else {
-		std::cout << "NO ROUTINES FOUND!" << std::endl;
+//		std::cout << "NO ROUTINES FOUND!" << std::endl;
 	}
 	return true;
 }
@@ -695,6 +702,8 @@ bool MemoryManager::touchSegment(struct segment_t* seg) {
 			seg->touch();
 		} catch (PageFaultException &e) {
 			seg->seg_pages.at(e._index) = *back_store.requestFreePage();
+
+			std::memcpy(seg->seg_pages[e._index]._id, seg->_id, 2);
 			loadPage(&seg->seg_pages.at(e._index));
 			page_fault = true;
 		}
@@ -717,7 +726,7 @@ void BackingStore::initMemFrames() {
 }
 
 struct mem_page_t* BackingStore::requestFreePage() {
-	std::cout << "Request page" << std::endl;
+//	std::cout << "Request page" << std::endl;
 
 	for (int i = 0; i < BACKING_STORE_PAGE_COUNT; i++) {
 		if (_backing_store[i]._index == -1) {
@@ -772,6 +781,8 @@ struct mem_frame_t* FrameTable::requestFreeFrame() {
 		_index = (rand() % MEMORY_FRAME_COUNT);
 	} while (std::strstr((char*) _frame_table[_index]._id, "@") != NULL);
 
-	return &_frame_table[0];
+	std::cout << _index << " : SWAPPING OUT - " << _frame_table[_index]._id << std::endl;
+
+	return &_frame_table[_index];
 }
 

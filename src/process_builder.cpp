@@ -64,7 +64,8 @@ struct process_t ProcessBuilder::generateProcess() {
 
 	unsigned int seed = static_cast<unsigned int>(time(0));
 //	int _index = ((rand_r(&seed) % _pid_list.size()));
-	int routine_count = (rand_r(&seed) % NUM_OF_PROC_SUBROUTINES) + 1;
+//	int routine_count = (rand_r(&seed) % NUM_OF_PROC_SUBROUTINES) + 1;
+	int routine_count = 2;
 	generateProcRoutines(_p._seg_routines, routine_count, _p._pid);
 	_p._burst_time = (rand_r(&seed) % (BURST_RANGE - 100)) + 100;
 

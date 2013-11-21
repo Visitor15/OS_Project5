@@ -23,40 +23,14 @@ void Computer::init() {
 			ProcessBuilder::getInstance()->generateKernelProcess());
 	_memManager.touchSegment(&_memManager._running_queue[0]._seg_code);
 
-	std::cout << "ADDING PROCESS" << std::endl;
-
-	_memManager.addToReadyQueue(
-			ProcessBuilder::getInstance()->generateProcess());
-	_memManager.addToReadyQueue(
-			ProcessBuilder::getInstance()->generateProcess());
-	_memManager.addToReadyQueue(
-			ProcessBuilder::getInstance()->generateProcess());
-	_memManager.addToReadyQueue(
-			ProcessBuilder::getInstance()->generateProcess());
-	_memManager.addToReadyQueue(
-			ProcessBuilder::getInstance()->generateProcess());
-	_memManager.addToReadyQueue(
-				ProcessBuilder::getInstance()->generateProcess());
-	_memManager.addToReadyQueue(
-				ProcessBuilder::getInstance()->generateProcess());
-	_memManager.addToReadyQueue(
-				ProcessBuilder::getInstance()->generateProcess());
-	_memManager.addToReadyQueue(
-				ProcessBuilder::getInstance()->generateProcess());
-	_memManager.addToReadyQueue(
-				ProcessBuilder::getInstance()->generateProcess());
-	_memManager.addToReadyQueue(
-				ProcessBuilder::getInstance()->generateProcess());
-	_memManager.addToReadyQueue(
-				ProcessBuilder::getInstance()->generateProcess());
-
 	while (_memManager._ready_queue.size() > 0) {
 		_memManager.touchNextReadyProc();
 	}
 
-	std::cout << "FINISHED" << std::endl;
+
 //	_memManager.swapIn(ProcessBuilder::getInstance()->generateKernelProcess());
-//	beginExecution();
+	beginExecution();
+	std::cout << "FINISHED" << std::endl;
 }
 
 void Computer::beginExecution() {
@@ -64,15 +38,15 @@ void Computer::beginExecution() {
 	do {
 		cycle();
 
-		if (cycle_num % PRINT_INTERVAL == 0) {
-			_memManager.printMemMap();
-		}
+//		if (cycle_num % PRINT_INTERVAL == 0) {
+//			_memManager.printMemMap();
+//		}
 	} while (hasJobs());
 }
 
 void Computer::cycle() {
 	++cycle_num;
-	_memManager.executeCycle();
+	_memManager.touchNextReadyProc();
 }
 
 void Computer::loadJobs() {
@@ -83,7 +57,7 @@ void Computer::loadJobs() {
 	std::cout << "2. Best Fit" << std::endl;
 	std::cout << "3. Worst Fit" << std::endl;
 	std::cout << "\nChoice: ";
-	std::cin >> _mem_strategy;
+//	std::cin >> _mem_strategy;
 
 	for (int i = 0; i < NUM_OF_PROCESSES - 1; ++i) {
 		process_t _proc = ProcessBuilder::getInstance()->generateProcess();
@@ -97,13 +71,15 @@ void Computer::loadJobs() {
 		_proc._limit = (unsigned long) ((rand() % (MAX_PROC_SIZE - 4)) + 4);
 		_proc._size = _proc._limit;
 
-		std::cout << "Process: " << _proc._pid << " Generated size: "
-				<< _proc._size << std::endl;
+//		std::cout << "Process: " << _proc._pid << " Generated size: "
+//				<< _proc._size << std::endl;
 
 		_memManager.addToReadyQueue(_proc);
 	}
 
-	switch (_mem_strategy) {
+	std::cout << "READY LIST SIZE: " + _memManager._ready_queue.size() << std::endl;
+
+	switch (1) {
 	case 1: {
 		_memManager.MEM_STRATEGY = 0;
 		break;
