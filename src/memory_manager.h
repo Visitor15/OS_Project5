@@ -13,6 +13,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstring>
+#include <stdlib.h>
 #include "process_builder.h"
 #include "backing_store.h"
 #include "frame_table.h"
@@ -24,6 +25,7 @@ public:
 
 
 	std::vector<struct process_t> _running_queue;
+	std::vector<struct process_t> _ready_queue;
 
 	int MEM_STRATEGY;
 
@@ -66,7 +68,7 @@ private:
 	mem_frame_t _MAIN_MEMORY[MEM_SIZE_IN_FRAMES];
 
 
-	std::vector<struct process_t> _ready_queue;
+
 	std::vector<struct process_t> _back_store;
 };
 

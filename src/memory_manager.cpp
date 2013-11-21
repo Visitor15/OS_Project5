@@ -252,7 +252,7 @@ struct process_t MemoryManager::pullNextFromReadyQueue() {
 }
 
 void MemoryManager::touchNextReadyProc() {
-	if(touchProcess(&_ready_queue.at(0))) {
+	if (touchProcess(&_ready_queue.at(0))) {
 		_running_queue.push_back(_ready_queue.at(0));
 		_ready_queue.erase(_ready_queue.begin());
 	}
@@ -675,8 +675,13 @@ bool MemoryManager::touchProcess(struct process_t* proc) {
 	touchSegment(&proc->_seg_code);
 	touchSegment(&proc->_seg_heap);
 	touchSegment(&proc->_seg_stack);
-	touchSegment(&proc->_seg_routines.at((rand() % proc->_num_routines)));
 
+	if (proc->_num_routines > 0) {
+		int index = rand() % proc->_num_routines;
+		touchSegment(&proc->_seg_routines.at(index));
+	} else {
+		std::cout << "NO ROUTINES FOUND!" << std::endl;
+	}
 	return true;
 }
 

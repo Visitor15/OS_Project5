@@ -15,6 +15,7 @@ ProcessBuilder::ProcessBuilder(ProcessBuilder const&) {
 ;
 
 ProcessBuilder* ProcessBuilder::getInstance() {
+
 	if (m_pInstance == NULL) {
 		static ProcessBuilder m_Self;
 		m_pInstance = &m_Self;
@@ -30,7 +31,8 @@ ProcessBuilder* ProcessBuilder::getInstance() {
 }
 
 char ProcessBuilder::generate_PID() {
-	int _index = ((rand() % _pid_list.size()));
+	unsigned int seed = static_cast<unsigned int>(time(0));
+	int _index = ((rand_r(&seed) % _pid_list.size()));
 	char _pid = (char) _pid_list.at(_index);
 	m_pInstance->_pid_list.erase(_pid_list.begin() + _index);
 
@@ -60,9 +62,11 @@ struct process_t ProcessBuilder::generateProcess() {
 	_p._seg_heap = segment_t(id, HEAP_SEG_PAGE_SIZE, 0, 0);
 
 
-	int routine_count = (rand() % NUM_OF_PROC_SUBROUTINES) + 1;
+	unsigned int seed = static_cast<unsigned int>(time(0));
+//	int _index = ((rand_r(&seed) % _pid_list.size()));
+	int routine_count = (rand_r(&seed) % NUM_OF_PROC_SUBROUTINES) + 1;
 	generateProcRoutines(_p._seg_routines, routine_count, _p._pid);
-	_p._burst_time = (rand() % (BURST_RANGE - 100)) + 100;
+	_p._burst_time = (rand_r(&seed) % (BURST_RANGE - 100)) + 100;
 
 	m_pInstance->_cached_history.push_back(_p);
 
@@ -74,9 +78,7 @@ struct process_t ProcessBuilder::generateProcess() {
 void ProcessBuilder::generateProcRoutines(std::vector<segment_t> &list, int count, const char pid) {
 	mem_page_t page_list[SUB_ROUTINE_SEG_PAGE_SIZE];
 	for (int i = 0; i < count; i++) {
-		std::ostringstream oss;
-		oss << (i + PROC_SUBROUTINE_NUM_OFFSET);
-		char generated_id[2] = { pid, *(char*) oss.str().c_str() };
+		char generated_id[2] = { pid, (char)(((int)'0')+i) };
 
 		for (i = 0; i < SUB_ROUTINE_SEG_PAGE_SIZE; i++) {
 			page_list[i] = mem_page_t();
