@@ -71,7 +71,7 @@ struct process_t ProcessBuilder::generateProcess() {
 
 	m_pInstance->_cached_history.push_back(_p);
 
-	std::cout << "GENERATED PROC: " + _p._pid << std::endl;
+//	std::cout << "GENERATED PROC: " + _p._pid << std::endl;
 
 	return _p;
 }

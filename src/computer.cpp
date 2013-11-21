@@ -23,14 +23,13 @@ void Computer::init() {
 			ProcessBuilder::getInstance()->generateKernelProcess());
 	_memManager.touchSegment(&_memManager._running_queue[0]._seg_code);
 
-	while (_memManager._ready_queue.size() > 0) {
-		_memManager.touchNextReadyProc();
-	}
+//	while (_memManager._ready_queue.size() > 0) {
+//		_memManager.touchNextReadyProc();
+//	}
 
 
 //	_memManager.swapIn(ProcessBuilder::getInstance()->generateKernelProcess());
 	beginExecution();
-	std::cout << "FINISHED" << std::endl;
 }
 
 void Computer::beginExecution() {
@@ -42,6 +41,8 @@ void Computer::beginExecution() {
 //			_memManager.printMemMap();
 //		}
 	} while (hasJobs());
+
+	std::cout << "FINISHED" << std::endl;
 }
 
 void Computer::cycle() {
@@ -52,11 +53,11 @@ void Computer::cycle() {
 void Computer::loadJobs() {
 //	srand(time(0));
 
-	std::cout << "\nChoose a memory management strategy" << std::endl;
-	std::cout << "1. First Fit" << std::endl;
-	std::cout << "2. Best Fit" << std::endl;
-	std::cout << "3. Worst Fit" << std::endl;
-	std::cout << "\nChoice: ";
+//	std::cout << "\nChoose a memory management strategy" << std::endl;
+//	std::cout << "1. First Fit" << std::endl;
+//	std::cout << "2. Best Fit" << std::endl;
+//	std::cout << "3. Worst Fit" << std::endl;
+//	std::cout << "\nChoice: ";
 //	std::cin >> _mem_strategy;
 
 	for (int i = 0; i < NUM_OF_PROCESSES - 1; ++i) {
@@ -71,35 +72,35 @@ void Computer::loadJobs() {
 		_proc._limit = (unsigned long) ((rand() % (MAX_PROC_SIZE - 4)) + 4);
 		_proc._size = _proc._limit;
 
-//		std::cout << "Process: " << _proc._pid << " Generated size: "
-//				<< _proc._size << std::endl;
+		std::cout << "Process: " << _proc._pid << " Generated size: "
+				<< _proc._size << std::endl;
 
 		_memManager.addToReadyQueue(_proc);
 	}
 
-	std::cout << "READY LIST SIZE: " + _memManager._ready_queue.size() << std::endl;
+//	std::cout << "READY LIST SIZE: " + _memManager._ready_queue.size() << std::endl;
+//
+//	switch (1) {
+//	case 1: {
+//		_memManager.MEM_STRATEGY = 0;
+//		break;
+//	}
+//	case 2: {
+//		_memManager.MEM_STRATEGY = 1;
+//		break;
+//	}
+//	case 3: {
+//		_memManager.MEM_STRATEGY = 2;
+//		break;
+//	}
+//	default: {
+//		std::cout << "\nBad choice!\n" << std::endl;
+//		loadJobs();
+//		break;
+//	}
+//	}
 
-	switch (1) {
-	case 1: {
-		_memManager.MEM_STRATEGY = 0;
-		break;
-	}
-	case 2: {
-		_memManager.MEM_STRATEGY = 1;
-		break;
-	}
-	case 3: {
-		_memManager.MEM_STRATEGY = 2;
-		break;
-	}
-	default: {
-		std::cout << "\nBad choice!\n" << std::endl;
-		loadJobs();
-		break;
-	}
-	}
-
-	std::cout << "Running strategy: " << _memManager.MEM_STRATEGY << std::endl;
+//	std::cout << "Running strategy: " << _memManager.MEM_STRATEGY << std::endl;
 }
 
 bool Computer::hasJobs() {
