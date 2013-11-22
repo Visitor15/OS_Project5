@@ -20,7 +20,7 @@ void MemoryManager::init() {
 	std::cout << "Memory booting..." << std::endl;
 
 	f_table.initMemFrames();
-	back_store.initMemFrames();
+	back_store.initMemPages();
 
 //	for(int i = 0; i < MEMORY_SIZE; i++) {
 //		_mem_array[i] = ' ';
@@ -683,12 +683,12 @@ bool MemoryManager::touchProcess(struct process_t* proc) {
 	touchSegment(&proc->_seg_heap);
 	touchSegment(&proc->_seg_stack);
 
-	if (proc->_num_routines > 0) {
-		int index = rand() % proc->_num_routines;
-		touchSegment(&proc->_seg_routines.at(index));
-	} else {
+//	if (proc->_num_routines > 0) {
+//		int index = rand() % proc->_num_routines;
+//		touchSegment(&proc->_seg_routines.at(index));
+//	} else {
 //		std::cout << "NO ROUTINES FOUND!" << std::endl;
-	}
+//	}
 	return true;
 }
 
@@ -701,11 +701,14 @@ bool MemoryManager::touchSegment(struct segment_t* seg) {
 			page_fault = false;
 			seg->touch();
 		} catch (PageFaultException &e) {
+			page_fault = true;
 			seg->seg_pages.at(e._index) = *back_store.requestFreePage();
+
+//			std::cout << "GOT INDEXED PAGE AT INDEX : " << seg->seg_pages.at(e._index)._index << std::endl;
 
 			std::memcpy(seg->seg_pages[e._index]._id, seg->_id, 2);
 			loadPage(&seg->seg_pages.at(e._index));
-			page_fault = true;
+
 		}
 	} while (page_fault);
 
@@ -719,21 +722,24 @@ BackingStore::BackingStore() {
 
 }
 
-void BackingStore::initMemFrames() {
-	for (int i = 0; i < MEMORY_FRAME_COUNT; i++) {
+void BackingStore::initMemPages() {
+	for (int i = 0; i < BACKING_STORE_PAGE_COUNT; i++) {
 		BackingStore::_backing_store[i] = mem_page_t(i);
 	}
 }
 
 struct mem_page_t* BackingStore::requestFreePage() {
-//	std::cout << "Request page" << std::endl;
+
 
 	for (int i = 0; i < BACKING_STORE_PAGE_COUNT; i++) {
-		if (_backing_store[i]._index == -1) {
+		if (!_backing_store[i]._is_active) {
+			std::cout << "Request page at index: " << i << std::endl;
+			_backing_store[i]._is_active = true;
 			return &_backing_store[i];
 		}
 	}
 
+	std::cout << "THROWING OOM" << std::endl;
 	throw MemoryFullException();
 }
 
@@ -767,11 +773,12 @@ void FrameTable::initMemFrames() {
 }
 
 struct mem_frame_t* FrameTable::requestFreeFrame() {
-	std::cout << "Request frame" << std::endl;
+
 
 	for (int i = 0; i < MEMORY_FRAME_COUNT; i++) {
 		if (!_frame_table[i]._active) {
 			FrameTable::_frame_table[i]._active = true;
+			std::cout << "Request frame" << std::endl;
 			return &FrameTable::_frame_table[i];
 		}
 	}

@@ -60,14 +60,18 @@ void Computer::loadJobs() {
 //	std::cout << "\nChoice: ";
 //	std::cin >> _mem_strategy;
 
+	std::cout << "GOT HERE" << std::endl;
+
 	for (int i = 0; i < NUM_OF_PROCESSES - 1; ++i) {
 		process_t _proc = ProcessBuilder::getInstance()->generateProcess();
 
-		if (_memManager.hasProcRegistered(_proc._pid)) {
-			do {
-				_proc = ProcessBuilder::getInstance()->generateProcess();
-			} while (_memManager.hasProcRegistered(_proc._pid));
-		}
+		std::cout << "GOT HERE 2" << std::endl;
+
+//		if (_memManager.hasProcRegistered(_proc._pid)) {
+//			do {
+//				_proc = ProcessBuilder::getInstance()->generateProcess();
+//			} while (_memManager.hasProcRegistered(_proc._pid));
+//		}
 
 		_proc._limit = (unsigned long) ((rand() % (MAX_PROC_SIZE - 4)) + 4);
 		_proc._size = _proc._limit;

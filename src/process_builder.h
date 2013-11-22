@@ -68,16 +68,20 @@ public:
 	char _id[2];
 	int _index;
 
+	bool _is_active;
+
 	mem_frame_t p_frame;
 
 	mem_page_t() {
 		_index = -1;
+		_is_active = false;
 		_size = (sizeof(char) * FRAME_SIZE_IN_BYTES);
 		p_frame = mem_frame_t();
 	}
 
 	mem_page_t(int index) {
 		_index = index;
+		_is_active = false;
 		_size = (sizeof(char) * FRAME_SIZE_IN_BYTES);
 		p_frame = mem_frame_t();
 	}
@@ -122,7 +126,7 @@ typedef struct segment_t {
 	}
 
 	bool touch() {
-		for (int i = seg_pages.size() - 1; i > -1; i--) {
+		for (int i = 0; i < seg_pages.size(); i++) {
 			if (seg_pages.at(i)._index != seg_pages.at(i).p_frame._index) {
 				throw PageFaultException(i);
 			}

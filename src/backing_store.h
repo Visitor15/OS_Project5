@@ -21,7 +21,7 @@ public:
 	mem_page_t* requestFreePage();
 	mem_page_t* requestPageAt(const unsigned int index);
 
-	void initMemFrames();
+	void initMemPages();
 
 	void clearPageAt(const unsigned int index);
 

@@ -64,9 +64,24 @@ struct process_t ProcessBuilder::generateProcess() {
 
 	unsigned int seed = static_cast<unsigned int>(time(0));
 //	int _index = ((rand_r(&seed) % _pid_list.size()));
-//	int routine_count = (rand_r(&seed) % NUM_OF_PROC_SUBROUTINES) + 1;
-	int routine_count = 2;
-	generateProcRoutines(_p._seg_routines, routine_count, _p._pid);
+	int routine_count = (rand_r(&seed) % NUM_OF_PROC_SUBROUTINES) + 1;
+
+	_p._num_routines = routine_count;
+//	int routine_count = 2;
+
+	mem_page_t page_list[SUB_ROUTINE_SEG_PAGE_SIZE];
+	for (int i = 0; i < _p._num_routines; i++) {
+		char generated_id[2] = { _p._pid, (char)(((int)'0')+i) };
+
+		for (int k = 0; k < SUB_ROUTINE_SEG_PAGE_SIZE; k++) {
+			page_list[k] = mem_page_t();
+		}
+
+		_p._seg_routines.push_back(segment_t(generated_id, SUB_ROUTINE_SEG_PAGE_SIZE, 0, 0));
+	}
+
+//	generateProcRoutines(_p._seg_routines, routine_count, _p._pid);
+	seed = static_cast<unsigned int>(time(0));
 	_p._burst_time = (rand_r(&seed) % (BURST_RANGE - 100)) + 100;
 
 	m_pInstance->_cached_history.push_back(_p);
