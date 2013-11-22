@@ -153,6 +153,7 @@ typedef struct process_t {
 
 	int _num_routines;
 	int _burst_time;
+	int _proc_runtime;
 	int _priority;
 
 	long _size;
@@ -172,6 +173,7 @@ typedef struct process_t {
 		_pid = ' ';
 		_num_routines = 0;
 		_burst_time = 0;
+		_proc_runtime = 0;
 		_priority = 0;
 		_size = 0;
 		_base = 0;

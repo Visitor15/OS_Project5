@@ -37,9 +37,9 @@ void Computer::beginExecution() {
 	do {
 		cycle();
 
-//		if (cycle_num % PRINT_INTERVAL == 0) {
-//			_memManager.printMemMap();
-//		}
+		if (cycle_num % PRINT_INTERVAL == 0) {
+			_memManager.printMemMap();
+		}
 	} while (hasJobs());
 
 	std::cout << "FINISHED" << std::endl;
@@ -59,13 +59,8 @@ void Computer::loadJobs() {
 //	std::cout << "3. Worst Fit" << std::endl;
 //	std::cout << "\nChoice: ";
 //	std::cin >> _mem_strategy;
-
-	std::cout << "GOT HERE" << std::endl;
-
 	for (int i = 0; i < NUM_OF_PROCESSES - 1; ++i) {
 		process_t _proc = ProcessBuilder::getInstance()->generateProcess();
-
-		std::cout << "GOT HERE 2" << std::endl;
 
 //		if (_memManager.hasProcRegistered(_proc._pid)) {
 //			do {

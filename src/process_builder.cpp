@@ -83,6 +83,7 @@ struct process_t ProcessBuilder::generateProcess() {
 //	generateProcRoutines(_p._seg_routines, routine_count, _p._pid);
 	seed = static_cast<unsigned int>(time(0));
 	_p._burst_time = (rand_r(&seed) % (BURST_RANGE - 100)) + 100;
+	_p._proc_runtime = ((rand_r(&seed) % MAX_PROC_RUNTIME - 20) + 20);
 
 	m_pInstance->_cached_history.push_back(_p);
 
