@@ -26,7 +26,7 @@ public:
 	std::vector<struct process_t> _running_queue;
 	std::vector<struct process_t> _ready_queue;
 
-	int MEM_STRATEGY = -1;
+	int MEM_STRATEGY;
 
 	void init();
 	void executeCycle();
