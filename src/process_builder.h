@@ -1,8 +1,10 @@
 /*
- * process_builder.h
- *
- *  Created on: Nov 17, 2013
- *      Author: visitor15
+ * CS3242 Operating Systems
+ * Fall 2013
+ * Project 5: Swapping and Paging
+ * Nick Champagne & John Mutabazi
+ * Date: 11/22/2013
+ * File: process_builder.h
  */
 
 #ifndef PROCESS_BUILDER_H_

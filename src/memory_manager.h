@@ -1,8 +1,10 @@
 /*
- * MemoryManager.h
- *
- *  Created on: Nov 1, 2013
- *      Author: visitor15
+ * CS3242 Operating Systems
+ * Fall 2013
+ * Project 5: Swapping and Paging
+ * Nick Champagne & John Mutabazi
+ * Date: 11/22/2013
+ * File: memory_manager.h
  */
 
 #ifndef MEMORYMANAGER_H_
@@ -18,6 +20,9 @@
 #include "backing_store.h"
 #include "frame_table.h"
 
+/*
+ * 		CLASS		Main class that drives the various memory management strategies.
+ */
 class MemoryManager {
 public:
 	MemoryManager();

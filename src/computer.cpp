@@ -1,8 +1,10 @@
 /*
- * computer.cpp
- *
- *  Created on: Nov 1, 2013
- *      Author: visitor15
+ * CS3242 Operating Systems
+ * Fall 2013
+ * Project 5: Swapping and Paging
+ * Nick Champagne & John Mutabazi
+ * Date: 11/22/2013
+ * File: computer.cpp
  */
 
 #include "computer.h"
@@ -22,12 +24,6 @@ void Computer::init() {
 	_memManager.loadKernelProcessInMemory(
 			ProcessBuilder::getInstance()->generateKernelProcess());
 	_memManager.touchSegment(&_memManager._running_queue[0]._seg_code, -1);
-
-//	while (_memManager._ready_queue.size() > 0) {
-//		_memManager.touchNextReadyProc();
-//	}
-
-//	_memManager.swapIn(ProcessBuilder::getInstance()->generateKernelProcess());
 	beginExecution();
 }
 
@@ -57,19 +53,9 @@ void Computer::cycle() {
 	else {
 		_memManager.executeCycleNonContigious();
 	}
-//	if (_memManager._ready_queue.size() > 0) {
-//		_memManager.touchProcess(
-//				&_memManager._ready_queue.at(
-//						rand() % _memManager._ready_queue.size()));
-//
-//		_memManager.touchNextReadyProc();
-//	}
-//	_memManager.printMemFrameMap();
 }
 
 void Computer::loadJobs() {
-//	srand(time(0));
-
 	_memManager.MEM_STRATEGY = -1;
 
 	std::cout << "\nChoose a memory management strategy" << std::endl;
@@ -96,8 +82,6 @@ void Computer::loadJobs() {
 
 		_memManager.addToReadyQueue(_proc);
 	}
-
-	std::cout << "READY LIST SIZE: " + _memManager._ready_queue.size() << std::endl;
 
 	switch (_mem_strategy) {
 	case 1: {

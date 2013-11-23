@@ -1,3 +1,12 @@
+/*
+ * CS3242 Operating Systems
+ * Fall 2013
+ * Project 5: Swapping and Paging
+ * Nick Champagne & John Mutabazi
+ * Date: 11/22/2013
+ * File: process_manager.h
+ */
+
 #ifndef PROCESS_MANAGER_H_
 #define PROCESS_MANAGER_H_
 
@@ -8,7 +17,7 @@ static const long	PAGE_SIZE_IN_BYTES 			= 4096;
 static const int 	MAX_QUANTA 					= 100;
 static const long 	BURST_RANGE 				= 5000;
 static const int 	PRINT_INTERVAL 				= 2;
-static const int 	NUM_OF_PROCESSES 			= 80;
+static const int 	NUM_OF_PROCESSES 			= 60;
 static const int 	MAX_PROC_SIZE 				= 160;
 static const double MAX_MEM_RATION 				= 0.65;
 static const long	KERNEL_SIZE_IN_BLOCKS 		= 120;

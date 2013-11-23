@@ -1,8 +1,10 @@
 /*
- * memory_full_exception.h
- *
- *  Created on: Nov 18, 2013
- *      Author: visitor15
+ * CS3242 Operating Systems
+ * Fall 2013
+ * Project 5: Swapping and Paging
+ * Nick Champagne & John Mutabazi
+ * Date: 11/22/2013
+ * File: memory_full_exception.h
  */
 
 #ifndef MEMORY_FULL_EXCEPTION_H_

@@ -1,8 +1,10 @@
 /*
- * main.cpp
- *
- *  Created on: Nov 1, 2013
- *      Author: visitor15
+ * CS3242 Operating Systems
+ * Fall 2013
+ * Project 5: Swapping and Paging
+ * Nick Champagne & John Mutabazi
+ * Date: 11/22/2013
+ * File: main.cpp
  */
 
 #include <stdlib.h>
@@ -11,6 +13,9 @@
 
 #include "computer.h"
 
+/*
+ * 		START
+ */
 int main() {
 	Computer::powerOn();
 

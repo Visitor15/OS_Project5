@@ -1,8 +1,10 @@
 /*
- * running_processes.h
- *
- *  Created on: Nov 17, 2013
- *      Author: visitor15
+ * CS3242 Operating Systems
+ * Fall 2013
+ * Project 5: Swapping and Paging
+ * Nick Champagne & John Mutabazi
+ * Date: 11/22/2013
+ * File: frame_table.h
  */
 
 #ifndef FRAME_TABLE_H_

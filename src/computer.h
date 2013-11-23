@@ -1,8 +1,10 @@
 /*
- * computer.h
- *
- *  Created on: Nov 1, 2013
- *      Author: visitor15
+ * CS3242 Operating Systems
+ * Fall 2013
+ * Project 5: Swapping and Paging
+ * Nick Champagne & John Mutabazi
+ * Date: 11/22/2013
+ * File: computer.h
  */
 
 #ifndef COMPUTER_H_
@@ -13,6 +15,9 @@
 #include "memory_manager.h"
 #include "process_builder.h"
 
+/*
+ *		CLASS		Simple class just to mimic a computer.
+ */
 static int _mem_strategy;
 static MemoryManager _memManager;
 

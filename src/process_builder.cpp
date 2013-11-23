@@ -1,8 +1,10 @@
 /*
- * process_manager.cpp
- *
- *  Created on: Nov 16, 2013
- *      Author: visitor15
+ * CS3242 Operating Systems
+ * Fall 2013
+ * Project 5: Swapping and Paging
+ * Nick Champagne & John Mutabazi
+ * Date: 11/22/2013
+ * File: process_builder.cpp
  */
 
 #include "process_builder.h"
