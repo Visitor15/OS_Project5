@@ -653,7 +653,7 @@ void MemoryManager::executeCycleNonContigious() {
 bool MemoryManager::loadKernelProcessInMemory(struct process_t proc) {
 
 	_running_queue.push_back(proc);
-	touchSegment(&proc._seg_code);
+	touchSegment(&proc._seg_code, -1);
 
 	return false;
 }
@@ -670,7 +670,7 @@ bool MemoryManager::loadPage(struct mem_page_t* page) {
 
 	std::memcpy(page->p_frame._id, page->_id, 2);
 	std::memcpy(frame._id, page->_id, 2);
-	(*page)._index = (*page).p_frame._index;
+	(*page)._frame_index = (*page).p_frame._index;
 
 //	std::cout << "SWAPPING IN - " << page->_index << " : " << page->_id << std::endl;
 
@@ -679,23 +679,25 @@ bool MemoryManager::loadPage(struct mem_page_t* page) {
 
 bool MemoryManager::touchProcess(struct process_t* proc) {
 
-	touchSegment(&proc->_seg_code);
-	touchSegment(&proc->_seg_heap);
-	touchSegment(&proc->_seg_stack);
+	touchSegment(&proc->_seg_code, -1);
+	touchSegment(&proc->_seg_heap, -1);
+	touchSegment(&proc->_seg_stack, -1);
 
 	if (proc->_num_routines > 0) {
 		int index = rand() % proc->_num_routines;
 
-		std::cout << "TOUCHING SUBROUTINE SEGMENT: " << *proc->_seg_routines.at(i)._id  << " index: " << index << std::endl;
+		std::cout << "TOUCHING SUBROUTINE SEGMENT: "
+				<< *proc->_seg_routines.at(i)._id << " index: " << index
+				<< std::endl;
 
-		touchSegment(&proc->_seg_routines.at(index));
+		touchSegment(&proc->_seg_routines.at(index), index);
 	} else {
 //		std::cout << "NO ROUTINES FOUND!" << std::endl;
 	}
 	return true;
 }
 
-bool MemoryManager::touchSegment(struct segment_t* seg) {
+bool MemoryManager::touchSegment(struct segment_t* seg, int opt_index) {
 
 	bool page_fault;
 
@@ -705,17 +707,89 @@ bool MemoryManager::touchSegment(struct segment_t* seg) {
 			seg->touch();
 		} catch (PageFaultException &e) {
 			page_fault = true;
-			seg->seg_pages.at(e._index) = *back_store.requestFreePage();
+			try {
+				mem_page_t& page = *back_store.requestFreePage();
+				page._seg_type = seg->_seg_type;
+				page._index = e._index;
+				page._seg_list_index = e._index;
+				seg->seg_pages.at(e._index) = page;
+			} catch (MemoryFullException &error) {
+				int _index = rand() % BACKING_STORE_PAGE_COUNT;
+
+				mem_page_t m_page = *back_store.requestPageAt(_index);
+				process_t* proc = getProcessByPID(seg->_id[0]);
+
+				if(m_page._index < 0) {
+					m_page._index = 0;
+				}
+				if(m_page._seg_list_index < 0) {
+					m_page._seg_list_index = 0;
+				}
+
+				if (proc) {
+					mem_page_t new_page = mem_page_t();
+					new_page._index = m_page._index;
+					new_page._seg_type = m_page._seg_type;
+					new_page._seg_list_index = m_page._seg_list_index;
+					switch (seg->_seg_type) {
+					case SEG_TYPE_CODE: {
+						std::cout << "TOUCHING CODE SEG" << std::endl;
+						(*proc)._seg_code.seg_pages.at(e._index) =
+								new_page;
+						break;
+					}
+					case SEG_TYPE_STACK: {
+						std::cout << "TOUCHING STACK SEG" << std::endl;
+						(*proc)._seg_stack.seg_pages.at(e._index) =
+								new_page;
+						break;
+					}
+					case SEG_TYPE_HEAP: {
+						std::cout << "TOUCHING HEAP SEG" << std::endl;
+						(*proc)._seg_heap.seg_pages.at(e._index) =
+								new_page;
+						break;
+					}
+					case SEG_TYPE_ROUTINE: {
+						std::cout << "TOUCHING ROUTINE SEG" << std::endl;
+						(*proc)._seg_routines.at(opt_index).seg_pages.at(
+								e._index) = new_page;
+						break;
+					}
+					default: {
+						// Nothing
+					}
+					}
+				}
+			}
 
 //			std::cout << "GOT INDEXED PAGE AT INDEX : " << seg->seg_pages.at(e._index)._index << std::endl;
 
 			std::memcpy(seg->seg_pages[e._index]._id, seg->_id, 2);
+
 			loadPage(&seg->seg_pages.at(e._index));
 
 		}
 	} while (page_fault);
 
 	return true;
+}
+
+struct process_t* MemoryManager::getProcessByPID(char pid) {
+	unsigned int i = 0;
+	for (i = 0; i < _ready_queue.size(); i++) {
+		if (_ready_queue.at(i)._pid == pid) {
+			return &_ready_queue.at(i);
+		}
+	}
+
+	for(i = 0; i < _running_queue.size(); i++) {
+		if(_running_queue.at(i)._pid == pid) {
+			return &_running_queue.at(i);
+		}
+	}
+
+	return 0;
 }
 
 /*************************************************
@@ -733,7 +807,6 @@ void BackingStore::initMemPages() {
 
 struct mem_page_t* BackingStore::requestFreePage() {
 
-
 	for (int i = 0; i < BACKING_STORE_PAGE_COUNT; i++) {
 		if (!_backing_store[i]._is_active) {
 //			std::cout << "Request page at index: " << i << std::endl;
@@ -741,11 +814,6 @@ struct mem_page_t* BackingStore::requestFreePage() {
 			return &_backing_store[i];
 		}
 	}
-
-	int _index = rand() % BACKING_STORE_PAGE_COUNT;
-
-	mem_page_t m_page = _backing_store[_index];
-
 	std::cout << "THROWING OOM" << std::endl;
 	throw MemoryFullException();
 }
@@ -780,7 +848,6 @@ void FrameTable::initMemFrames() {
 }
 
 struct mem_frame_t* FrameTable::requestFreeFrame() {
-
 
 	for (int i = 0; i < MEMORY_FRAME_COUNT; i++) {
 		if (!_frame_table[i]._active) {

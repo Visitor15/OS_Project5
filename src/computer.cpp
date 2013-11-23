@@ -21,7 +21,7 @@ void Computer::init() {
 	_memManager.init();
 	_memManager.loadKernelProcessInMemory(
 			ProcessBuilder::getInstance()->generateKernelProcess());
-	_memManager.touchSegment(&_memManager._running_queue[0]._seg_code);
+	_memManager.touchSegment(&_memManager._running_queue[0]._seg_code, -1);
 
 //	while (_memManager._ready_queue.size() > 0) {
 //		_memManager.touchNextReadyProc();
@@ -37,9 +37,9 @@ void Computer::beginExecution() {
 	do {
 		cycle();
 
-		if (cycle_num % PRINT_INTERVAL == 0) {
-			_memManager.printMemMap();
-		}
+//		if (cycle_num % PRINT_INTERVAL == 0) {
+//			_memManager.printMemMap();
+//		}
 	} while (hasJobs());
 
 	std::cout << "FINISHED" << std::endl;

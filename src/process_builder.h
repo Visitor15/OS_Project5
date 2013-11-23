@@ -40,7 +40,7 @@ public:
 		_id[1] = ' ';
 		_base = 0;
 		_limit = 0;
-		_index = -1;
+		_index = -2;
 		_size = (sizeof(char) * PAGE_SIZE_IN_BYTES);
 		_active = false;
 	}
@@ -67,13 +67,18 @@ private:
 public:
 	char _id[2];
 	int _index;
-
+	int _frame_index;
+	int _seg_list_index;
+	int _seg_type;
 	bool _is_active;
 
 	mem_frame_t p_frame;
 
 	mem_page_t() {
 		_index = -1;
+		_frame_index = -1;
+		_seg_list_index = -1;
+		_seg_type = -1;
 		_is_active = false;
 		_size = (sizeof(char) * FRAME_SIZE_IN_BYTES);
 		p_frame = mem_frame_t();
@@ -81,6 +86,9 @@ public:
 
 	mem_page_t(int index) {
 		_index = index;
+		_frame_index = -1;
+		_seg_type = -1;
+		_seg_list_index = -1;
 		_is_active = false;
 		_size = (sizeof(char) * FRAME_SIZE_IN_BYTES);
 		p_frame = mem_frame_t();
@@ -96,6 +104,7 @@ typedef struct segment_t {
 	unsigned long _base;
 	unsigned long _limit;
 	int _num_pages;
+	int _seg_type;
 
 	std::vector<mem_page_t> seg_pages;
 
@@ -107,13 +116,15 @@ typedef struct segment_t {
 		_base = 0;
 		_limit = 0;
 		_num_pages = 0;
+		_seg_type = -1;
 		_valid = false;
 	}
 
-	segment_t(char ID[], int NUM_PAGES, long REG_BASE, long REG_LIMIT) {
+	segment_t(char ID[], int NUM_PAGES, long REG_BASE, long REG_LIMIT, int SEG_TYPE) {
 		_id[0] = ID[0];
 		_id[1] = ID[1];
 		_num_pages = NUM_PAGES;
+		_seg_type = SEG_TYPE;
 
 		seg_pages.clear();
 		for (int i = 0; i < NUM_PAGES; i++) {
@@ -126,8 +137,8 @@ typedef struct segment_t {
 	}
 
 	bool touch() {
-		for (int i = 0; i < seg_pages.size(); i++) {
-			if (seg_pages.at(i)._index != seg_pages.at(i).p_frame._index) {
+		for (unsigned int i = 0; i < seg_pages.size(); i++) {
+			if (seg_pages.at(i)._frame_index != seg_pages.at(i).p_frame._index) {
 				throw PageFaultException(i);
 			}
 		}

@@ -23,6 +23,10 @@ static const int	HEAP_SEG_PAGE_SIZE = 			5;
 static const int	SUB_ROUTINE_SEG_PAGE_SIZE = 	2;
 static const int	MAX_PROC_PAGE_SIZE = 			20;
 static const int	MAX_PROC_RUNTIME =				300;
+static const int	SEG_TYPE_CODE = 0;
+static const int	SEG_TYPE_STACK = 1;
+static const int	SEG_TYPE_HEAP = 2;
+static const int	SEG_TYPE_ROUTINE = 3;
 
 static bool USE_MEM_STRATEGY_BLOCKS = false;
 

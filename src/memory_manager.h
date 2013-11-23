@@ -23,7 +23,6 @@ public:
 	MemoryManager();
 	~MemoryManager();
 
-
 	std::vector<struct process_t> _running_queue;
 	std::vector<struct process_t> _ready_queue;
 
@@ -54,20 +53,19 @@ public:
 	void loadSegmentInMemory(struct segment_t seg);
 	bool loadPage(struct mem_page_t* page);
 	bool touchProcess(struct process_t* proc);
-	bool touchSegment(struct segment_t* seg);
+	bool touchSegment(struct segment_t* seg, int opt_index);
 	bool loadKernelProcessInMemory(struct process_t proc);
 	void executeCycleNonContigious();
+	process_t* getProcessByPID(char pid);
 
 private:
-	BackingStore 	back_store;
-	FrameTable		f_table;
+	BackingStore back_store;
+	FrameTable f_table;
 
 	long _m_cycle_num;
 	char _mem_array[MEMORY_SIZE];
 
 	mem_frame_t _MAIN_MEMORY[MEM_SIZE_IN_FRAMES];
-
-
 
 	std::vector<struct process_t> _back_store;
 };

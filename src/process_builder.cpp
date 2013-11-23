@@ -51,15 +51,15 @@ struct process_t ProcessBuilder::generateProcess() {
 	int i = 0;
 	id[0] = _p._pid;
 	id[1] = '0';
-	_p._seg_code = segment_t(id, CODE_SEG_PAGE_SIZE, 0, 0);
+	_p._seg_code = segment_t(id, CODE_SEG_PAGE_SIZE, 0, 0, SEG_TYPE_CODE);
 
 	id[0] = _p._pid;
 	id[1] = '1';
-	_p._seg_stack = segment_t(id, STACK_SEG_PAGE_SIZE, 0, 0);
+	_p._seg_stack = segment_t(id, STACK_SEG_PAGE_SIZE, 0, 0, SEG_TYPE_STACK);
 
 	id[0] = _p._pid;
 	id[1] = '2';
-	_p._seg_heap = segment_t(id, HEAP_SEG_PAGE_SIZE, 0, 0);
+	_p._seg_heap = segment_t(id, HEAP_SEG_PAGE_SIZE, 0, 0, SEG_TYPE_HEAP);
 
 
 	unsigned int seed = static_cast<unsigned int>(time(0));
@@ -77,7 +77,7 @@ struct process_t ProcessBuilder::generateProcess() {
 			page_list[k] = mem_page_t();
 		}
 
-		_p._seg_routines.push_back(segment_t(generated_id, SUB_ROUTINE_SEG_PAGE_SIZE, 0, 0));
+		_p._seg_routines.push_back(segment_t(generated_id, SUB_ROUTINE_SEG_PAGE_SIZE, 0, 0, SEG_TYPE_ROUTINE));
 	}
 
 //	generateProcRoutines(_p._seg_routines, routine_count, _p._pid);
@@ -101,7 +101,7 @@ void ProcessBuilder::generateProcRoutines(std::vector<segment_t> &list, int coun
 			page_list[i] = mem_page_t();
 		}
 
-		list.push_back(segment_t(generated_id, SUB_ROUTINE_SEG_PAGE_SIZE, 0, 0));
+		list.push_back(segment_t(generated_id, SUB_ROUTINE_SEG_PAGE_SIZE, 0, 0, SEG_TYPE_ROUTINE));
 	}
 }
 
@@ -118,7 +118,7 @@ struct process_t ProcessBuilder::generateKernelProcess() {
 	char id[2];
 	id[0] = _k_proc._pid;
 	id[1] = '0';
-	_k_proc._seg_code = segment_t(id, KERNEL_SIZE_IN_FRAMES, 0, 0);
+	_k_proc._seg_code = segment_t(id, KERNEL_SIZE_IN_FRAMES, 0, 0, SEG_TYPE_CODE);
 	_k_proc._can_swap_out = false;
 	_k_proc._can_swap_in = true;
 

@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <vector>
 #include "process_builder.h"
+#include "memory_manager.h"
 
 class BackingStore {
 private:
