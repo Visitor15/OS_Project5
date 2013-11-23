@@ -702,7 +702,9 @@ void MemoryManager::formatDetails() {
 
 void MemoryManager::executeCycleNonContigious() {
 	if (_running_queue.size() > 0) {
-		touchProcess(&(_running_queue.at((rand() % _running_queue.size()))));
+		this->touchNextReadyProc();
+
+//		touchProcess(&(_running_queue.at((rand() % _running_queue.size()))));
 	} else {
 		std::cout << "No processes found in running queue!" << std::endl;
 	}
