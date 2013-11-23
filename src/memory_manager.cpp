@@ -22,10 +22,10 @@ void MemoryManager::init() {
 	f_table.initMemFrames();
 	back_store.initMemPages();
 
-//	for(int i = 0; i < MEMORY_SIZE; i++) {
-//		_mem_array[i] = ' ';
-//	}
-//	std::fill(_mem_array, _mem_array + MEMORY_SIZE, ' ');
+	for (int i = 0; i < MEMORY_SIZE; i++) {
+		_mem_array[i] = ' ';
+	}
+	std::fill(_mem_array, _mem_array + MEMORY_SIZE, ' ');
 }
 
 bool MemoryManager::swapIn(process_t process) {
@@ -75,10 +75,6 @@ bool MemoryManager::swapIn(process_t process) {
 	}
 
 	if (_process_swapped) {
-//		std::cout << "Swapping in " << process._pid << std::endl;
-//		std::cout << "Size: " << (process._limit - process._base) << std::endl;
-//		std::cout << "BASE: " << process._base << " LIMIT: " << process._limit
-//				<< std::endl;
 		for (long i = process._base; i < process._limit; ++i) {
 			_mem_array[i] = process._pid;
 		}
@@ -89,27 +85,19 @@ bool MemoryManager::swapIn(process_t process) {
 		process._can_swap_out = false;
 
 		_running_queue.push_back(process);
-
-//		printMemMap();
 	}
 
 	return _process_swapped;
 }
 
 bool MemoryManager::swapOut(const process_t process) {
-
 	if (isKernelProcess(process)) {
 		return false;
 	}
 
-//	std::cout << "Swapping out " << process._pid << std::endl;
-//	std::cout << "Freed: " << (process._limit - process._base) << std::endl;
-
 	for (unsigned int i = process._base; i < process._limit; ++i) {
 		_mem_array[i] = ' ';
 	}
-
-//	printMemMap();
 
 	return true;
 }
@@ -176,7 +164,7 @@ std::pair<long, long> MemoryManager::canFitBestFit(process_t process) {
 	}
 
 	if (_pos_list.size() > 0) {
-		for (int i = 1; i < _pos_list.size(); i++) {
+		for (unsigned int i = 1; i < _pos_list.size(); i++) {
 			_index = ((_pos_list.at(i) < _pos_list.at(_index)) ? i : _index);
 		}
 
@@ -225,7 +213,7 @@ std::pair<long, long> MemoryManager::canFitWorstFit(process_t process) {
 	}
 
 	if (_pos_list.size() > 0) {
-		for (int i = 1; i < _pos_list.size(); i++) {
+		for (unsigned int i = 1; i < _pos_list.size(); i++) {
 			_index = ((_pos_list.at(i) > _pos_list.at(_index)) ? i : _index);
 		}
 
@@ -427,10 +415,9 @@ long MemoryManager::getNumberOfFreeBlocks() {
 bool MemoryManager::doCompaction() {
 	std::vector<process_t> tmpList;
 	bool result = false;
-	long _start_index = 0;
 	process_t proc;
 
-	int i = 0;
+	unsigned int i = 0;
 	for (i = 0; i < _running_queue.size(); i++) {
 		proc = _running_queue.at(i);
 		if (isKernelProcess(proc)) {
@@ -517,6 +504,77 @@ void MemoryManager::printMemMap() {
 			std::cout << _mem_array[i];
 
 			if ((i > 0) && (i % 80 == 0)) {
+				_print_state = 0;
+				std::cout << "" << std::endl;
+			}
+
+			continue;
+		}
+		}
+	}
+
+	std::cout
+			<< "================================================================================"
+			<< std::endl;
+}
+
+void MemoryManager::printMemFrameMap() {
+	i = 0;
+	_print_state = 0;
+	formatDetails();
+
+	i = 0;
+	for (; i <= MEM_SIZE_IN_FRAMES; i++) {
+		switch (_print_state) {
+		case 0: {
+
+			if (i > 0) {
+				if (i % 5 == 0) {
+					if (i % 10 == 0) {
+						if (i < 100) {
+							std::cout << "         " << i;
+						} else if (i < 1000) {
+							std::cout << "        " << i;
+						} else {
+							std::cout << "       " << i;
+						}
+					}
+				}
+			}
+
+			if ((i > 0) && (i % 49 == 0)) {
+				_print_state += 1;
+				std::cout << "\n";
+				i = (i - 49);
+			}
+
+			continue;
+		}
+		case 1: {
+
+			if (i % 5 == 0) {
+				if (i % 10 == 0) {
+					std::cout << "||";
+				} else {
+					std::cout << "++";
+				}
+			} else {
+				std::cout << "--";
+			}
+
+			if ((i > 0) && (i % 49 == 0)) {
+				_print_state += 1;
+				std::cout << std::endl;
+				i = (i - 49);
+			}
+
+			continue;
+		}
+		case 2: {
+
+			std::cout << f_table.requestFrameAt(i)->_id;
+
+			if ((i > 0) && (i % 49 == 0)) {
 				_print_state = 0;
 				std::cout << "" << std::endl;
 			}
@@ -658,21 +716,13 @@ bool MemoryManager::loadKernelProcessInMemory(struct process_t proc) {
 	return false;
 }
 
-void MemoryManager::loadSegmentInMemory(struct segment_t seg) {
-
-}
-
 bool MemoryManager::loadPage(struct mem_page_t* page) {
 
-	mem_frame_t &frame = *f_table.requestFreeFrame();
-
-	(*page).p_frame = frame;
+	mem_frame_t* frame = f_table.requestFreeFrame();
 
 	std::memcpy(page->p_frame._id, page->_id, 2);
-	std::memcpy(frame._id, page->_id, 2);
+	std::memcpy(frame->_id, page->_id, 2);
 	(*page)._frame_index = (*page).p_frame._index;
-
-//	std::cout << "SWAPPING IN - " << page->_index << " : " << page->_id << std::endl;
 
 	return true;
 }
@@ -687,13 +737,12 @@ bool MemoryManager::touchProcess(struct process_t* proc) {
 		int index = rand() % proc->_num_routines;
 
 		std::cout << "TOUCHING SUBROUTINE SEGMENT: "
-				<< *proc->_seg_routines.at(i)._id << " index: " << index
+				<< *proc->_seg_routines.at(index)._id << " index: " << index
 				<< std::endl;
 
 		touchSegment(&proc->_seg_routines.at(index), index);
-	} else {
-//		std::cout << "NO ROUTINES FOUND!" << std::endl;
 	}
+
 	return true;
 }
 
@@ -719,10 +768,10 @@ bool MemoryManager::touchSegment(struct segment_t* seg, int opt_index) {
 				mem_page_t m_page = *back_store.requestPageAt(_index);
 				process_t* proc = getProcessByPID(seg->_id[0]);
 
-				if(m_page._index < 0) {
+				if (m_page._index < 0) {
 					m_page._index = 0;
 				}
-				if(m_page._seg_list_index < 0) {
+				if (m_page._seg_list_index < 0) {
 					m_page._seg_list_index = 0;
 				}
 
@@ -733,25 +782,18 @@ bool MemoryManager::touchSegment(struct segment_t* seg, int opt_index) {
 					new_page._seg_list_index = m_page._seg_list_index;
 					switch (seg->_seg_type) {
 					case SEG_TYPE_CODE: {
-						std::cout << "TOUCHING CODE SEG" << std::endl;
-						(*proc)._seg_code.seg_pages.at(e._index) =
-								new_page;
+						(*proc)._seg_code.seg_pages.at(e._index) = new_page;
 						break;
 					}
 					case SEG_TYPE_STACK: {
-						std::cout << "TOUCHING STACK SEG" << std::endl;
-						(*proc)._seg_stack.seg_pages.at(e._index) =
-								new_page;
+						(*proc)._seg_stack.seg_pages.at(e._index) = new_page;
 						break;
 					}
 					case SEG_TYPE_HEAP: {
-						std::cout << "TOUCHING HEAP SEG" << std::endl;
-						(*proc)._seg_heap.seg_pages.at(e._index) =
-								new_page;
+						(*proc)._seg_heap.seg_pages.at(e._index) = new_page;
 						break;
 					}
 					case SEG_TYPE_ROUTINE: {
-						std::cout << "TOUCHING ROUTINE SEG" << std::endl;
 						(*proc)._seg_routines.at(opt_index).seg_pages.at(
 								e._index) = new_page;
 						break;
@@ -762,8 +804,6 @@ bool MemoryManager::touchSegment(struct segment_t* seg, int opt_index) {
 					}
 				}
 			}
-
-//			std::cout << "GOT INDEXED PAGE AT INDEX : " << seg->seg_pages.at(e._index)._index << std::endl;
 
 			std::memcpy(seg->seg_pages[e._index]._id, seg->_id, 2);
 
@@ -783,8 +823,8 @@ struct process_t* MemoryManager::getProcessByPID(char pid) {
 		}
 	}
 
-	for(i = 0; i < _running_queue.size(); i++) {
-		if(_running_queue.at(i)._pid == pid) {
+	for (i = 0; i < _running_queue.size(); i++) {
+		if (_running_queue.at(i)._pid == pid) {
 			return &_running_queue.at(i);
 		}
 	}
@@ -809,12 +849,11 @@ struct mem_page_t* BackingStore::requestFreePage() {
 
 	for (int i = 0; i < BACKING_STORE_PAGE_COUNT; i++) {
 		if (!_backing_store[i]._is_active) {
-//			std::cout << "Request page at index: " << i << std::endl;
 			_backing_store[i]._is_active = true;
 			return &_backing_store[i];
 		}
 	}
-	std::cout << "THROWING OOM" << std::endl;
+	std::cout << "THROWING Out of memory!" << std::endl;
 	throw MemoryFullException();
 }
 
@@ -852,7 +891,6 @@ struct mem_frame_t* FrameTable::requestFreeFrame() {
 	for (int i = 0; i < MEMORY_FRAME_COUNT; i++) {
 		if (!_frame_table[i]._active) {
 			FrameTable::_frame_table[i]._active = true;
-//			std::cout << "Request frame" << std::endl;
 			return &FrameTable::_frame_table[i];
 		}
 	}
@@ -862,8 +900,10 @@ struct mem_frame_t* FrameTable::requestFreeFrame() {
 		_index = (rand() % MEMORY_FRAME_COUNT);
 	} while (std::strstr((char*) _frame_table[_index]._id, "@") != NULL);
 
-//	std::cout << _index << " : SWAPPING OUT - " << _frame_table[_index]._id << std::endl;
+	return &FrameTable::_frame_table[_index];
+}
 
-	return &_frame_table[_index];
+struct mem_frame_t* FrameTable::requestFrameAt(const unsigned int index) {
+	return &FrameTable::_frame_table[index];
 }
 

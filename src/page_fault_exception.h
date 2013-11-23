@@ -12,7 +12,7 @@
 
 class PageFaultException: public std::exception {
 public:
-	int _index = -1;
+	int _index;
 	PageFaultException(int index) {
 		_index = index;
 	}

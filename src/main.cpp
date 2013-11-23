@@ -12,7 +12,6 @@
 #include "computer.h"
 
 int main() {
-
 	Computer::powerOn();
 
 	return EXIT_SUCCESS;

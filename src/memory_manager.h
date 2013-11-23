@@ -30,33 +30,39 @@ public:
 
 	void init();
 	void executeCycle();
+	void executeCycleNonContigious();
+	void addToBackingStore(const process_t process);
+	void formatDetails();
+	void addToReadyQueue(const process_t process);
+	void touchNextReadyProc();
+	void printMemMap();
+	void printMemFrameMap();
+	void loadSegmentInMemory(struct segment_t seg);
+
 	bool swapIn(const process_t process);
 	bool swapOut(const process_t process);
-	void addToBackingStore(const process_t process);
-	long getNumberOfFreeBlocks();
-	std::pair<int, int> getMemFreeUsedPair();
-	double getMemRatio();
-	process_t getLargestProcess();
-	process_t getSmallestProcess();
-	void formatDetails();
-	struct process_t pullNextFromBackStore();
-	void addToReadyQueue(const process_t process);
-	struct process_t pullNextFromReadyQueue();
-	void touchNextReadyProc();
-	std::pair<long, long> canFitFirstFit(process_t process);
-	std::pair<long, long> canFitBestFit(process_t process);
-	std::pair<long, long> canFitWorstFit(process_t process);
 	bool doCompaction();
 	bool hasProcRegistered(char _pid);
 	bool hasReadyProcess();
-	void printMemMap();
-	void loadSegmentInMemory(struct segment_t seg);
 	bool loadPage(struct mem_page_t* page);
 	bool touchProcess(struct process_t* proc);
 	bool touchSegment(struct segment_t* seg, int opt_index);
 	bool loadKernelProcessInMemory(struct process_t proc);
-	void executeCycleNonContigious();
+
+	double getMemRatio();
+	long getNumberOfFreeBlocks();
+	std::pair<int, int> getMemFreeUsedPair();
+
 	process_t* getProcessByPID(char pid);
+	process_t getLargestProcess();
+	process_t getSmallestProcess();
+
+	struct process_t pullNextFromBackStore();
+	struct process_t pullNextFromReadyQueue();
+
+	std::pair<long, long> canFitFirstFit(process_t process);
+	std::pair<long, long> canFitBestFit(process_t process);
+	std::pair<long, long> canFitWorstFit(process_t process);
 
 private:
 	BackingStore back_store;

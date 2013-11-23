@@ -12,8 +12,6 @@
 
 class FrameTable {
 private:
-//	static std::vector<struct process_t> _running_queue(MEMORY_PAGE_COUNT);
-
 	mem_frame_t _frame_table[MEMORY_FRAME_COUNT];
 
 public:

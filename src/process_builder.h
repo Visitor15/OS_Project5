@@ -145,8 +145,6 @@ typedef struct segment_t {
 
 		_valid = true;
 
-		std::cout << "TOUCHED " << *this->_id << std::endl;
-
 		return _valid;
 	}
 } _segment;
